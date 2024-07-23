@@ -6,7 +6,7 @@ def get_parser():
 
     ## general
     parser.add_argument('--image_dir', type=str, required=True, help='The directory to process')
-    parser.add_argument('--save_dir', type=str, required=True, help='The directory to save')
+    parser.add_argument('--out_dir', type=str, required=True, help='The directory to save')
     parser.add_argument('--device', type=str, default='cuda:0', help='The device to use for processing')
     parser.add_argument('--exp_name',  type=str, default='test')
 
@@ -22,13 +22,13 @@ def get_parser():
     parser.add_argument('--mask_image', type=bool, default=False)
     parser.add_argument('--mask_pc',  type=bool, default=True)
     parser.add_argument('--reduce_pc', default=False)
-    parser.add_argument('--bg_trd',  type=float, default=0., help='')
-    parser.add_argument('--center',  type=float, default=1., help='center * depth in (H//2,W//2)')
-    parser.add_argument('--d_theta', type=float, default=10.)
-    parser.add_argument('--d_phi',  type=float, default=30.)
-    parser.add_argument('--d_r',  type=float, default=.8)
+    parser.add_argument('--bg_trd',  type=float, default=0., help='0. is no mask')
+    parser.add_argument('--center_scale',  type=float, default=1., help='center * depth in (H//2,W//2)')
+    parser.add_argument('--d_theta', nargs='+', type=int, default=10.)
+    parser.add_argument('--d_phi', nargs='+', type=int, default=30.)
+    parser.add_argument('--d_r', nargs='+', type=float, default=.8)
     parser.add_argument('--elevation',  type=float, default=15.)
-    parser.add_argument('--mode',  type=str, default='specify')
+    parser.add_argument('--mode',  type=str, default='single_view_specify')
 
     ## diffusion
     parser.add_argument("--ckpt_path", type=str, default=None, help="checkpoint path")

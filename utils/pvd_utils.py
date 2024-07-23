@@ -19,6 +19,7 @@ from pytorch3d.renderer import (
     PerspectiveCameras,
 )
 import torch.nn.functional as F
+from torchvision.transforms import ToPILImage
 import copy
 from scipy.spatial.transform import Rotation as R
 from scipy.spatial.transform import Slerp
@@ -37,6 +38,12 @@ def save_video(data,images_path,folder=None):
         stacked_images = np.stack(images, axis=0)
         tensor_data = torch.from_numpy(stacked_images).to(torch.uint8)
     torchvision.io.write_video(images_path, tensor_data, fps=8, video_codec='h264', options={'crf': '10'})
+
+def get_input_dict(img_tensor,idx,dtype = torch.float32):
+
+    return {'img':F.interpolate(img_tensor.to(dtype), size=(288, 512), mode='bilinear', align_corners=False), 'true_shape': np.array([[288, 512]], dtype=np.int32), 'idx': idx, 'instance': str(idx), 'img_ori':[]}
+    # return {'img':F.interpolate(img_tensor.to(dtype), size=(288, 512), mode='bilinear', align_corners=False), 'true_shape': np.array([[288, 512]], dtype=np.int32), 'idx': idx, 'instance': str(idx), 'img_ori':ToPILImage()((img_tensor.squeeze(0)+ 1) / 2)}
+
 
 def rotate_theta(c2ws_input, theta, phi, r, device): 
     # theta: 图像的倾角,新的y’轴(位于yoz平面)与y轴的夹角
@@ -218,7 +225,7 @@ def inv(mat):
         return np.linalg.inv(mat)
     raise ValueError(f'bad matrix type = {type(mat)}')
 
-def save_pointcloud_with_normals(imgs, pts3d, msk, sparse_path,mask_pc, reduce_pc):
+def save_pointcloud_with_normals(imgs, pts3d, msk, save_path, mask_pc, reduce_pc):
     pc = get_pc(imgs, pts3d, msk,mask_pc,reduce_pc)  # Assuming get_pc is defined elsewhere and returns a trimesh point cloud
 
     # Define a default normal, e.g., [0, 1, 0]
@@ -228,8 +235,6 @@ def save_pointcloud_with_normals(imgs, pts3d, msk, sparse_path,mask_pc, reduce_p
     vertices = pc.vertices
     colors = pc.colors
     normals = np.tile(default_normal, (vertices.shape[0], 1))
-
-    save_path = os.path.join(sparse_path,'pcd.ply')
 
     # Construct the header of the PLY file
     header = """ply
