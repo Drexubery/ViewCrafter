@@ -79,7 +79,7 @@ def rotate_theta(c2ws_input, theta, phi, r, device):
 
     return c2ws
 
-def rotate_surface(c2ws_input, theta, phi, r, device):
+def sphere2pose(c2ws_input, theta, phi, r, device):
     c2ws = copy.deepcopy(c2ws_input)
 
     theta = torch.deg2rad(torch.tensor(theta)).to(device)
@@ -103,25 +103,53 @@ def rotate_surface(c2ws_input, theta, phi, r, device):
 
     return c2ws
 
-def generate_traj_specified(c2ws,H,W,fs,c,theta, phi,d_r,frame,device):
+def generate_candidate_poses(c2ws_anchor,H,W,fs,c,theta, phi,num_candidates,device):
     # Initialize a camera.
     """
     The camera coordinate sysmte in COLMAP is right-down-forward
     Pytorch3D is left-up-forward
     """
-    # 用于生成pose序列
-    thetas = np.linspace(0,theta,frame)
-    phis = np.linspace(0,phi,frame)
+    if num_candidates == 2:
+        thetas = np.array([0,-theta])
+        phis = np.array([phi,phi])
+    elif num_candidates == 3:
+        thetas = np.array([0,-theta,theta/2.]) #avoid too many downward
+        phis = np.array([phi,phi,phi])
+    else:
+        raise ValueError("NBV mode only supports 2 or 3 candidates per iteration.")
+    
+    c2ws_list = []
 
-    c2w_list = []
-
-    thetas = np.linspace(0,theta,frame)
-    phis = np.linspace(0,phi,frame)
-    c2w_list = []
     for th, ph in zip(thetas,phis):
-        c2w = rotate_surface(c2ws, np.float32(th), np.float32(ph), d_r, device)
-        c2w_list.append(c2w)
-    c2ws = torch.cat(c2w_list,dim=0)
+        c2w_new = sphere2pose(c2ws_anchor, np.float32(th), np.float32(ph), r=None, device= device)
+        c2ws_list.append(c2w_new)
+    c2ws = torch.cat(c2ws_list,dim=0)
+    num_views = c2ws.shape[0]
+
+    R, T = c2ws[:,:3, :3], c2ws[:,:3, 3:]
+    ## 将dust3r坐标系转成pytorch3d坐标系
+    R = torch.stack([-R[:,:, 0], -R[:,:, 1], R[:,:, 2]], 2) # from RDF to LUF for Rotation
+    new_c2w = torch.cat([R, T], 2)
+    w2c = torch.linalg.inv(torch.cat((new_c2w, torch.Tensor([[[0,0,0,1]]]).to(device).repeat(new_c2w.shape[0],1,1)),1))
+    R_new, T_new = w2c[:,:3, :3].permute(0,2,1), w2c[:,:3, 3] # convert R to row-major matrix
+    image_size = ((H, W),)  # (h, w)
+    cameras = PerspectiveCameras(focal_length=fs, principal_point=c, in_ndc=False, image_size=image_size, R=R_new, T=T_new, device=device)
+    return cameras,thetas,phis
+
+def generate_traj_specified(c2ws_anchor,H,W,fs,c,theta, phi,d_r,frame,device):
+    # Initialize a camera.
+    """
+    The camera coordinate sysmte in COLMAP is right-down-forward
+    Pytorch3D is left-up-forward
+    """
+
+    thetas = np.linspace(0,theta,frame)
+    phis = np.linspace(0,phi,frame)
+    c2ws_list = []
+    for th, ph in zip(thetas,phis):
+        c2w_new = sphere2pose(c2ws_anchor, np.float32(th), np.float32(ph), d_r, device)
+        c2ws_list.append(c2w_new)
+    c2ws = torch.cat(c2ws_list,dim=0)
     num_views = c2ws.shape[0]
 
     R, T = c2ws[:,:3, :3], c2ws[:,:3, 3:]
