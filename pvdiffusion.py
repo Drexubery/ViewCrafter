@@ -40,7 +40,7 @@ class PVDiffusion:
         pairs = make_pairs(input_images, scene_graph='complete', prefilter=None, symmetrize=True)
         output = inference(pairs, self.dust3r, self.device, batch_size=self.opts.batch_size)
 
-        mode = GlobalAlignerMode.PointCloudOptimizer if len(self.images) > 2 else GlobalAlignerMode.PairViewer
+        mode = GlobalAlignerMode.PointCloudOptimizer #if len(self.images) > 2 else GlobalAlignerMode.PairViewer
         scene = global_aligner(output, device=self.device, mode=mode)
         if mode == GlobalAlignerMode.PointCloudOptimizer:
             loss = scene.compute_global_alignment(init='mst', niter=self.opts.niter, schedule=self.opts.schedule, lr=self.opts.lr)
@@ -104,7 +104,7 @@ class PVDiffusion:
         focals = self.scene.get_focals().detach()[1:] 
         shape = self.images[0]['true_shape']
         H, W = int(shape[0][0]), int(shape[0][1])
-        pcd = [i.detach() for i in self.scene.get_pts3d()] # a list of points of size whc
+        pcd = [i.detach() for i in self.scene.get_pts3d(clip_thred=self.opts.dpt_trd)] # a list of points of size whc
         depth = [i.detach() for i in self.scene.get_depthmaps()]
         depth_avg = depth[-1][H//2,W//2] #以图像中心处的depth(z)为球心旋转
         radius = depth_avg*self.opts.center_scale #缩放调整
@@ -132,13 +132,17 @@ class PVDiffusion:
         focals = self.scene.get_focals().detach()
         shape = self.images[0]['true_shape']
         H, W = int(shape[0][0]), int(shape[0][1])
-        pcd = [i.detach() for i in self.scene.get_pts3d()] # a list of points of size whc
+        pcd = [i.detach() for i in self.scene.get_pts3d(clip_thred=self.opts.dpt_trd)] # a list of points of size whc
         depth = [i.detach() for i in self.scene.get_depthmaps()]
-        depth_avg = depth[0][H//2,W//2] #以图像中心处的depth(z)为球心旋转
+        depth_avg = depth[0][H//2,W//2] #以ref图像中心处的depth(z)为球心旋转
         radius = depth_avg*self.opts.center_scale #缩放调整
 
         ## change coordinate
-        c2ws,pcd =  world_point_to_obj(poses=c2ws, points=torch.stack(pcd), k=0, r=radius, elevation=self.opts.elevation, device=self.device)
+        if self.opts.mode == 'single_view_ref_iterative':
+            c2ws,pcd =  world_point_to_obj(poses=c2ws, points=torch.stack(pcd), k=0, r=radius, elevation=self.opts.elevation, device=self.device)
+        elif self.opts.mode == 'single_view_1drc_iterative':
+            self.opts.elevation -= self.opts.d_theta[iter-1]
+            c2ws,pcd =  world_point_to_obj(poses=c2ws, points=torch.stack(pcd), k=-1, r=radius, elevation=self.opts.elevation, device=self.device)
 
         ## masks for cleaner point cloud
         self.scene.min_conf_thr = float(self.scene.conf_trf(torch.tensor(self.opts.min_conf_thr)))
@@ -150,10 +154,16 @@ class PVDiffusion:
 
         ## render, 从c2ws[0]即ref image对应的相机开始
         imgs = np.array(self.scene.imgs)
-        camera_traj,num_views = generate_traj_specified(c2ws[0:1], H, W, focals[0:1], principal_points[0:1], self.opts.d_theta[iter], self.opts.d_phi[iter], self.opts.d_r[iter],self.opts.video_length, self.device)
+        if self.opts.mode == 'single_view_ref_iterative':
+            camera_traj,num_views = generate_traj_specified(c2ws[0:1], H, W, focals[0:1], principal_points[0:1], self.opts.d_theta[iter], self.opts.d_phi[iter], self.opts.d_r[iter],self.opts.video_length, self.device)
+        elif self.opts.mode == 'single_view_1drc_iterative':
+            camera_traj,num_views = generate_traj_specified(c2ws[-1:], H, W, focals[-1:], principal_points[-1:], self.opts.d_theta[iter], self.opts.d_phi[iter], self.opts.d_r[iter],self.opts.video_length, self.device)
         render_results, viewmask = self.run_render(pcd, imgs,masks, H, W, camera_traj,num_views)
         render_results = F.interpolate(render_results.permute(0,3,1,2), size=(576, 1024), mode='bilinear', align_corners=False).permute(0,2,3,1)
-        render_results[0] = self.img_ori
+        if self.opts.mode == 'single_view_ref_iterative':
+            render_results[0] = self.img_ori
+        elif self.opts.mode == 'single_view_1drc_iterative':
+            render_results[0] = (self.images[-1]['img_ori'].squeeze(0).permute(1,2,0)+1.)/2.
         save_video(render_results, os.path.join(self.opts.save_dir, f'render{iter}.mp4'))
         save_pointcloud_with_normals(imgs, pcd, msk=masks, save_path=os.path.join(self.opts.save_dir, f'pcd{iter}.ply') , mask_pc=True, reduce_pc=False)
         diffusion_results = self.run_diffusion(render_results)
@@ -161,7 +171,7 @@ class PVDiffusion:
         # torch.Size([25, 576, 1024, 3])
         return diffusion_results
     
-    def nvs_single_view_iterative(self):
+    def nvs_single_view_ref_iterative(self):
 
         all_results = []
         sample_rate = 6
@@ -184,6 +194,52 @@ class PVDiffusion:
                 all_results.append(diffusion_results_itr)
         return all_results
 
+    def nvs_single_view_1drc_iterative(self):
+
+        all_results = []
+        sample_rate = 6
+        idx = 1 #初始包含1张ref image
+        for itr in range(0, len(self.opts.d_phi)):
+            if itr == 0:
+                self.images = [self.images[0]] #去掉后一份copy
+                diffusion_results_itr = self.nvs_single_view()
+                # diffusion_results_itr = torch.randn([25, 576, 1024, 3]).to(self.device)
+                diffusion_results_itr = diffusion_results_itr.permute(0,3,1,2)
+                all_results.append(diffusion_results_itr)
+            else:
+                for i in range(0+sample_rate, diffusion_results_itr.shape[0], sample_rate):
+                    self.images.append(get_input_dict(diffusion_results_itr[i:i+1,...],idx,dtype = torch.float32))
+                    idx += 1
+                self.run_dust3r(input_images=self.images, clean_pc=True)
+                diffusion_results_itr = self.nvs_sparse_view(itr)
+                # diffusion_results_itr = torch.randn([25, 576, 1024, 3]).to(self.device)
+                diffusion_results_itr = diffusion_results_itr.permute(0,3,1,2)
+                all_results.append(diffusion_results_itr)
+        return all_results
+
+    def nvs_single_view_nbv(self):
+        # lef and right
+
+        all_results = []
+        sample_rate = 6
+        idx = 1 #初始包含1张ref image
+        for itr in range(0, len(self.opts.d_phi)):
+            if itr == 0:
+                self.images = [self.images[0]] #去掉后一份copy
+                diffusion_results_itr = self.nvs_single_view()
+                # diffusion_results_itr = torch.randn([25, 576, 1024, 3]).to(self.device)
+                diffusion_results_itr = diffusion_results_itr.permute(0,3,1,2)
+                all_results.append(diffusion_results_itr)
+            else:
+                for i in range(0+sample_rate, diffusion_results_itr.shape[0], sample_rate):
+                    self.images.append(get_input_dict(diffusion_results_itr[i:i+1,...],idx,dtype = torch.float32))
+                    idx += 1
+                self.run_dust3r(input_images=self.images, clean_pc=True)
+                diffusion_results_itr = self.nvs_sparse_view(itr)
+                # diffusion_results_itr = torch.randn([25, 576, 1024, 3]).to(self.device)
+                diffusion_results_itr = diffusion_results_itr.permute(0,3,1,2)
+                all_results.append(diffusion_results_itr)
+        return all_results
 
     def setup_diffusion(self):
         seed_everything(self.opts.seed)
@@ -214,15 +270,17 @@ class PVDiffusion:
         ## load images
         ## dict_keys(['img', 'true_shape', 'idx', 'instance', 'img_ori']),准成张量形式
         images = load_images([image_dir], size=512,force_1024 = True)
-        img_ori = Image.open(image_dir).convert('RGB')
+        img_ori = (images[0]['img_ori'].squeeze(0).permute(1,2,0)+1.)/2. # [576,1024,3] [0,1]
 
-        transform = transforms.Compose([
-            transforms.Resize((576, 1024)),  
-            transforms.ToTensor(), 
-            transforms.Normalize((0., 0., 0.), (1., 1., 1.))  # 归一化到[-1,1]，如果要归一化到[0,1]，请使用transforms.Normalize((0., 0., 0.), (1., 1., 1.))
-        ])
+        # img_ori = Image.open(image_dir).convert('RGB')
 
-        img_ori = transform(img_ori).permute(1,2,0).to(self.device)
+        # transform = transforms.Compose([
+        #     transforms.Resize((576, 1024)),  
+        #     transforms.ToTensor(), 
+        #     transforms.Normalize((0., 0., 0.), (1., 1., 1.))  # 归一化到[-1,1]，如果要归一化到[0,1]，请使用transforms.Normalize((0., 0., 0.), (1., 1., 1.))
+        # ])
+
+        # img_ori = transform(img_ori).permute(1,2,0).to(self.device)
         if len(images) == 1:
             images = [images[0], copy.deepcopy(images[0])]
             images[1]['idx'] = 1

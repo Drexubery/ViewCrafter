@@ -158,26 +158,29 @@ class PointCloudOptimizer(BasePCOptimizer):
             param.data[:] = depth.log().nan_to_num(neginf=0)
         return param
 
-    def get_depthmaps(self, raw=False):
+    def get_depthmaps(self, raw=False, clip_thred = None):
         res = self.im_depthmaps.exp()
         if not raw:
             res = [dm[:h*w].view(h, w) for dm, (h, w) in zip(res, self.imshapes)]
+        if clip_thred is not None:
+            thred = torch.max(res)*clip_thred
+            res = torch.where(res > thred, thred, res)
         return res
 
-    def depth_to_pts3d(self):
+    def depth_to_pts3d(self,clip_thred=None):
         # Get depths and  projection params if not provided
         focals = self.get_focals()
         pp = self.get_principal_points()
         im_poses = self.get_im_poses()
-        depth = self.get_depthmaps(raw=True)
+        depth = self.get_depthmaps(raw=True,clip_thred = clip_thred)
 
         # get pointmaps in camera frame
         rel_ptmaps = _fast_depthmap_to_pts3d(depth, self._grid, focals, pp=pp)
         # project to world frame
         return geotrf(im_poses, rel_ptmaps)
 
-    def get_pts3d(self, raw=False):
-        res = self.depth_to_pts3d()
+    def get_pts3d(self, raw=False, clip_thred=None):
+        res = self.depth_to_pts3d(clip_thred)
         if not raw:
             res = [dm[:h*w].view(h, w, 3) for dm, (h, w) in zip(res, self.imshapes)]
         return res

@@ -23,6 +23,7 @@ def get_parser():
     parser.add_argument('--mask_pc',  type=bool, default=True)
     parser.add_argument('--reduce_pc', default=False)
     parser.add_argument('--bg_trd',  type=float, default=0., help='0. is no mask')
+    parser.add_argument('--dpt_trd',  type=float, default=0., help='limit the max depth by * dpt_trd')
     parser.add_argument('--center_scale',  type=float, default=1., help='center * depth in (H//2,W//2)')
     parser.add_argument('--d_theta', nargs='+', type=int, default=10.)
     parser.add_argument('--d_phi', nargs='+', type=int, default=30.)

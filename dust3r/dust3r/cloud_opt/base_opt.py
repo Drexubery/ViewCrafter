@@ -193,11 +193,11 @@ class BasePCOptimizer (nn.Module):
     def get_masks(self):
         return [(conf > self.min_conf_thr) for conf in self.im_conf]
 
-    def depth_to_pts3d(self):
+    def depth_to_pts3d(self,clip_thred=None):
         raise NotImplementedError()
 
-    def get_pts3d(self, raw=False):
-        res = self.depth_to_pts3d()
+    def get_pts3d(self, raw=False,clip_thred=None):
+        res = self.depth_to_pts3d(clip_thred)
         if not raw:
             res = [dm[:h*w].view(h, w, 3) for dm, (h, w) in zip(res, self.imshapes)]
         return res
@@ -239,7 +239,7 @@ class BasePCOptimizer (nn.Module):
         depthmaps = self.get_depthmaps()
         res = deepcopy(self)
 
-        for i, pts3d in enumerate(self.depth_to_pts3d()):
+        for i, pts3d in enumerate(self.depth_to_pts3d(clip_thred=None)):
             for j in range(self.n_imgs):
                 if i == j:
                     continue

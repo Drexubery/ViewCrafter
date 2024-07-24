@@ -13,7 +13,13 @@ if __name__=="__main__":
     pvd = PVDiffusion(opts)
 
     if opts.mode == 'single_view_specify':
-        results = pvd.nvs_single_view()
+        pvd.nvs_single_view()
 
-    elif opts.mode == 'single_view_specify_iterative':
-        pvd.nvs_single_view_iterative()
+    elif opts.mode == 'single_view_ref_iterative':
+        all_results = pvd.nvs_single_view_ref_iterative()
+
+    elif opts.mode == 'single_view_1drc_iterative':
+        all_results = pvd.nvs_single_view_1drc_iterative()
+
+    elif opts.mode == 'single_view_nbv':
+        all_results = pvd.nvs_single_view_nbv()
