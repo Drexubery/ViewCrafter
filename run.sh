@@ -1,15 +1,15 @@
 python inference.py \
---image_dir /apdcephfs_cq10/share_1290939/karmyu/pytorch3d_render_dust/input/figure/family.png \
---out_dir ./output/0723/ \
---center_scale 1. \
---bg_trd .35 \
---dpt_trd .3 \
---mode 'single_view_1drc_iterative' \
---d_theta -15 0 -15  \
---d_phi -20 -20 -20 \
+--image_dir /apdcephfs_cq10/share_1290939/karmyu/pytorch3d_render_dust/input/test_bench_new/light.png \
+--out_dir ./output/0724/ \
+--center_scale .6 \
+--bg_trd .1 \
+--dpt_trd .1 \
+--mode 'single_view_nbv' \
+--d_theta 15  \
+--d_phi -20 \
 --d_r .8 .8 .8 \
---elevation=5 \
---exp_name 'test_1dir2' \
+--elevation=-10 \
+--exp_name 'test_nbv_light3' \
 --seed 123 \
 --ckpt_path /apdcephfs_cq10/share_1290939/vg_share/vip3d_share/final_1024_SD-IPA_builton_base512_25frame_DL3DV_R10k_25frame/epoch=0-step=5000.ckpt \
 --config configs/inference_pvd_1024.yaml \
