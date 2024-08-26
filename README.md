@@ -12,10 +12,10 @@ _**[Wangbo Yu](), [Jinbo Xing](https://menghanxia.github.io), [Li Yuan](), [Wenb
 
 ## 🔆 Introduction
 
-PVDiffusion can generate high-fidelity novel views from <strong>a single or sparse reference image</strong>, while also supporting highly precise pose control.
+PVDiffusion can generate high-fidelity novel views from <strong>a single or sparse reference image</strong>, while also supporting highly precise pose control. Below shows an example:
 
 
-### 1.1 Zero-shot Novel View Synthesis (Single View)
+### Zero-shot novel view synthesis (single view)
 <table class="center">
     <tr style="font-weight: bolder;text-align:center;">
         <td>Reference image</td>
@@ -54,6 +54,49 @@ PVDiffusion can generate high-fidelity novel views from <strong>a single or spar
   </td>
   <td>
     <img src=assets/flower.gif width="250">
+  </td>
+  </tr>
+</table>
+
+### Zero-shot novel view synthesis (2 views)
+<table class="center">
+    <tr style="font-weight: bolder;text-align:center;">
+        <td>Reference image 1</td>
+        <td>Reference image 2</td>
+        <td>Generated novel view video</td>
+    </tr>
+
+   <tr>
+  <td>
+    <img src=assets/car2_1.png width="250">
+  </td>
+  <td>
+    <img src=assets/car2_2.png width="250">
+  </td>
+  <td>
+    <img src=assets/car2.gif width="250">
+  </td>
+  </tr>
+  <tr>
+  <td>
+    <img src=assets/barn_1.png width="250">
+  </td>
+  <td>
+    <img src=assets/barn_2.png width="250">
+  </td>
+  <td>
+    <img src=assets/barn.gif width="250">
+  </td>
+  </tr> 
+  <tr>
+  <td>
+    <img src=assets/house_1.png width="250">
+  </td>
+  <td>
+    <img src=assets/house_2.png width="250">
+  </td>
+  <td>
+    <img src=assets/house.gif width="250">
   </td>
   </tr>
 </table>
