@@ -120,7 +120,7 @@ Currently, we provide two versions of the model: a base model that generates 16 
 
 ### 1. Clone ViewCrafter
 ```bash
-git clone https://github.com/naver/dust3r](https://github.com/Drexubery/PVDiffusion.git)
+git clone https://github.com/Drexubery/ViewCrafter.git
 cd ViewCrafter
 ```
 ### 2. Installation
