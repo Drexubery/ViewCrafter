@@ -1,18 +1,18 @@
-## ___***PVDiffusion: Point-conditioned Video Diffusion Models for High-fidelity Novel View Synthesis***___
+## ___***ViewCrafter: Taming Video Diffusion Models for High-fidelity Novel View Synthesis***___
 <div align="center">
 
  <a href='https://arxiv.org/abs/2310.12190'><img src='https://img.shields.io/badge/arXiv-2310.12190-b31b1b.svg'></a> &nbsp;
  <a href='https://doubiiu.github.io/projects/DynamiCrafter/'><img src='https://img.shields.io/badge/Project-Page-Green'></a> &nbsp;
  <a href='https://huggingface.co/papers/2310.12190'><img src='https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Page-blue'></a> &nbsp;
 
-_**[Wangbo Yu](), [Jinbo Xing](https://menghanxia.github.io), [Li Yuan](), [Wenbo Hu](https://wbhu.github.io/), [Xiaoyu Li](https://xiaoyu258.github.io/), [Zhipeng Huang](), <br> [Xiangjun Gao](https://scholar.google.com/citations?user=qgdesEcAAAAJ&hl=en/), [Tien-Tsin Wong](https://www.cse.cuhk.edu.hk/~ttwong/myself.html), [Ying Shan](https://scholar.google.com/citations?hl=en&user=4oXBp9UAAAAJ&view_op=list_works&sortby=pubdate), [Yonghong Tian]()**_
+_**[Wangbo Yu*](), [Jinbo Xing*](https://menghanxia.github.io), [Li Yuan*](), [Wenbo Hu&dagger;](https://wbhu.github.io/), [Xiaoyu Li](https://xiaoyu258.github.io/), [Zhipeng Huang](), <br> [Xiangjun Gao](https://scholar.google.com/citations?user=qgdesEcAAAAJ&hl=en/), [Tien-Tsin Wong](https://www.cse.cuhk.edu.hk/~ttwong/myself.html), [Ying Shan](https://scholar.google.com/citations?hl=en&user=4oXBp9UAAAAJ&view_op=list_works&sortby=pubdate), [Yonghong Tian&dagger;]()**_
 <br><br>
 
 </div>
 
 ## 🔆 Introduction
 
-PVDiffusion can generate high-fidelity novel views from <strong>a single or sparse reference image</strong>, while also supporting highly precise pose control. Below shows an example:
+ViewCrafter can generate high-fidelity novel views from <strong>a single or sparse reference image</strong>, while also supporting highly precise pose control. Below shows an example:
 
 
 ### Zero-shot novel view synthesis (single view)
@@ -100,3 +100,39 @@ PVDiffusion can generate high-fidelity novel views from <strong>a single or spar
   </td>
   </tr>
 </table>
+
+## 📝 Changelog
+- __[2024.08.28]__: Release code for zero-shot novel view synthesis and model weights.
+- __[2024.08.28]__: Launch the project page and update the arXiv preprint.
+<br>
+
+## 🧰 Models
+
+|Model|Resolution|Frames|GPU Mem. & Inference Time (A100, ddim 50steps)|Checkpoint|
+|:---------|:---------|:--------|:--------|:--------|
+|ViewCrafter_25|576x1024|25| TBD (`perframe_ae=True`)|[Hugging Face](https://huggingface.co/Doubiiu/ToonCrafter/blob/main/model.ckpt)|
+|ViewCrafter_16|576x1024|16| TBD (`perframe_ae=True`)|[Hugging Face](https://huggingface.co/Doubiiu/ToonCrafter/blob/main/model.ckpt)|
+
+
+Currently, we provide two versions of the model: a base model that generates 16 frames at a time and an enhanced model that generates 25 frames at a time. The inference time can be reduced by using fewer DDIM steps.
+
+## ⚙️ Setup
+
+### 1. Clone ViewCrafter
+```bash
+git clone https://github.com/naver/dust3r](https://github.com/Drexubery/PVDiffusion.git)
+cd ViewCrafter
+```
+### 2. Installation
+
+```bash
+conda create -n viewcrafter python=3.9.16
+conda activate viewcrafter
+pip install -r requirements.txt
+
+# Install PyTorch3D.
+wget https://anaconda.org/pytorch3d/pytorch3d/0.7.5/download/linux-64/pytorch3d-0.7.5-py39_cu117_pyt1131.tar.bz2
+conda install pytorch3d-0.7.5-py39_cu117_pyt1131.tar.bz2
+rm -r pytorch3d-0.7.5-py39_cu117_pyt1131.tar.bz2
+```
+
