@@ -22,25 +22,13 @@ PVDiffusion can generate high-fidelity novel views from <strong>a single or spar
         <td>Camera trajecotry</td>
         <td>Generated novel view video</td>
     </tr>
-  <tr>
-  <td>
-    <img src=assets/car.png width="250">
-  </td>
-  <td>
-    <img src=assets/ccar.gif width="150">
-  </td>
-  <td>
-    <img src=assets/car.gif width="250">
-  </td>
-  </tr>
-
 
    <tr>
   <td>
     <img src=assets/train.png width="250">
   </td>
   <td>
-    <img src=assets/ctrain.gif width=150">
+    <img src=assets/ctrain.gif width="150">
   </td>
   <td>
     <img src=assets/train.gif width="250">
