@@ -1,8 +1,6 @@
-from pvdiffusion import PVDiffusion
+from viewcrafter import ViewCrafter
 import os
 from configs.infer_config import get_parser
-from decord import VideoReader, cpu
-import torch
 from utils.pvd_utils import *
 
 if __name__=="__main__":
@@ -10,9 +8,12 @@ if __name__=="__main__":
     opts = parser.parse_args()
     opts.save_dir = os.path.join(opts.out_dir,opts.exp_name)
     os.makedirs(opts.save_dir,exist_ok=True)
-    pvd = PVDiffusion(opts)
+    pvd = ViewCrafter(opts)
 
-    if opts.mode == 'single_view_specify':
+    if opts.mode == 'single_view_target':
+        pvd.nvs_single_view()
+
+    elif opts.mode == 'single_view_txt':
         pvd.nvs_single_view()
 
     elif opts.mode == 'single_view_ref_iterative':

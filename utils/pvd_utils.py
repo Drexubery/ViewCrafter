@@ -9,6 +9,7 @@ import cv2  # Assuming OpenCV is used for image saving
 from PIL import Image
 import pytorch3d
 import random
+from PIL import ImageGrab
 torchvision
 from torchvision.utils import save_image
 from pytorch3d.renderer import (
@@ -18,14 +19,19 @@ from pytorch3d.renderer import (
     AlphaCompositor,
     PerspectiveCameras,
 )
+import imageio
 import torch.nn.functional as F
 from torchvision.transforms import ToPILImage
 import copy
+from scipy.interpolate import interp1d
+from scipy.interpolate import UnivariateSpline
 from scipy.spatial.transform import Rotation as R
 from scipy.spatial.transform import Slerp
 import sys
-sys.path.append('./dust3r')
+sys.path.append('./extern/dust3r')
 from dust3r.utils.device import to_numpy
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 
 def save_video(data,images_path,folder=None):
     if isinstance(data, np.ndarray):
@@ -82,6 +88,9 @@ def rotate_theta(c2ws_input, theta, phi, r, device):
 def sphere2pose(c2ws_input, theta, phi, r, device):
     c2ws = copy.deepcopy(c2ws_input)
 
+    #先沿着世界坐标系z轴方向平移再旋转
+    c2ws[:,2,3] += r
+
     theta = torch.deg2rad(torch.tensor(theta)).to(device)
     sin_value_x = torch.sin(theta)
     cos_value_x = torch.cos(theta)
@@ -101,7 +110,7 @@ def sphere2pose(c2ws_input, theta, phi, r, device):
     c2ws = torch.matmul(rot_mat_x,c2ws)
     c2ws = torch.matmul(rot_mat_y,c2ws)
 
-    return c2ws
+    return c2ws 
 
 def generate_candidate_poses(c2ws_anchor,H,W,fs,c,theta, phi,num_candidates,device):
     # Initialize a camera.
@@ -145,11 +154,65 @@ def generate_traj_specified(c2ws_anchor,H,W,fs,c,theta, phi,d_r,frame,device):
 
     thetas = np.linspace(0,theta,frame)
     phis = np.linspace(0,phi,frame)
+    rs = np.linspace(0,d_r*c2ws_anchor[0,2,3].cpu(),frame)
     c2ws_list = []
-    for th, ph in zip(thetas,phis):
-        c2w_new = sphere2pose(c2ws_anchor, np.float32(th), np.float32(ph), d_r, device)
+    for th, ph, r in zip(thetas,phis,rs):
+        c2w_new = sphere2pose(c2ws_anchor, np.float32(th), np.float32(ph), np.float32(r), device)
         c2ws_list.append(c2w_new)
     c2ws = torch.cat(c2ws_list,dim=0)
+    num_views = c2ws.shape[0]
+
+    R, T = c2ws[:,:3, :3], c2ws[:,:3, 3:]
+    ## 将dust3r坐标系转成pytorch3d坐标系
+    R = torch.stack([-R[:,:, 0], -R[:,:, 1], R[:,:, 2]], 2) # from RDF to LUF for Rotation
+    new_c2w = torch.cat([R, T], 2)
+    w2c = torch.linalg.inv(torch.cat((new_c2w, torch.Tensor([[[0,0,0,1]]]).to(device).repeat(new_c2w.shape[0],1,1)),1))
+    R_new, T_new = w2c[:,:3, :3].permute(0,2,1), w2c[:,:3, 3] # convert R to row-major matrix
+    image_size = ((H, W),)  # (h, w)
+    cameras = PerspectiveCameras(focal_length=fs, principal_point=c, in_ndc=False, image_size=image_size, R=R_new, T=T_new, device=device)
+    return cameras,num_views
+
+def generate_traj_txt(c2ws_anchor,H,W,fs,c,phi, theta, r,frame,device,viz_traj=False, save_dir = None):
+    # Initialize a camera.
+    """
+    The camera coordinate sysmte in COLMAP is right-down-forward
+    Pytorch3D is left-up-forward
+    """
+
+    if len(phi)>3:
+        phis = txt_interpolation(phi,frame,mode='smooth')
+        phis[0] = phi[0]
+        phis[-1] = phi[-1]
+    else:
+        phis = txt_interpolation(phi,frame,mode='linear')
+
+    if len(theta)>3:
+        thetas = txt_interpolation(theta,frame,mode='smooth')
+        thetas[0] = theta[0]
+        thetas[-1] = theta[-1]
+    else:
+        thetas = txt_interpolation(theta,frame,mode='linear')
+    
+    if len(r) >3:
+        rs = txt_interpolation(r,frame,mode='smooth')
+        rs[0] = r[0]
+        rs[-1] = r[-1]        
+    else:
+        rs = txt_interpolation(r,frame,mode='linear')
+    rs = rs*c2ws_anchor[0,2,3].cpu().numpy()
+
+    c2ws_list = []
+    for th, ph, r in zip(thetas,phis,rs):
+        c2w_new = sphere2pose(c2ws_anchor, np.float32(th), np.float32(ph), np.float32(r), device)
+        c2ws_list.append(c2w_new)
+    c2ws = torch.cat(c2ws_list,dim=0)
+
+    if viz_traj:
+        poses = c2ws.cpu().numpy()
+        # visualizer(poses, os.path.join(save_dir,'viz_traj.png'))
+        frames = [visualizer_frame(poses, i) for i in range(len(poses))]
+        save_video(np.array(frames)/255.,os.path.join(save_dir,'viz_traj.mp4'))
+
     num_views = c2ws.shape[0]
 
     R, T = c2ws[:,:3, :3], c2ws[:,:3, 3:]
@@ -372,3 +435,89 @@ def world_point_to_obj(poses, points, k, r, elevation, device):
     new_points = new_points.squeeze(-1)[...,:3].view(N, W, H, _)
     
     return new_poses, new_points
+
+def txt_interpolation(input_list,n,mode = 'smooth'):
+    x = np.linspace(0, 1, len(input_list))
+    if mode == 'smooth':
+        f = UnivariateSpline(x, input_list, k=3)
+    elif mode == 'linear':
+        f = interp1d(x, input_list)
+    else:
+        raise KeyError(f"Invalid txt interpolation mode: {mode}")
+    xnew = np.linspace(0, 1, n)
+    ynew = f(xnew)
+    return ynew
+
+def visualizer(camera_poses, save_path="out.png"):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection="3d")
+
+    colors = ["blue" for _ in camera_poses]
+    for pose, color in zip(camera_poses, colors):
+
+        camera_positions = pose[:3, 3]
+        ax.scatter(
+            camera_positions[0],
+            camera_positions[1],
+            camera_positions[2],
+            c=color,
+            marker="o",
+        )
+
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Z")
+    ax.set_title("Camera trajectory")
+    # ax.view_init(90+30, -90)
+    plt.savefig(save_path)
+    plt.close()
+
+def visualizer_frame(camera_poses, highlight_index):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection="3d")
+    # 获取camera_positions[2]的最大值和最小值
+    z_values = [pose[:3, 3][2] for pose in camera_poses]
+    z_min, z_max = min(z_values), max(z_values)
+
+    # 创建一个颜色映射对象
+    cmap = mcolors.LinearSegmentedColormap.from_list("mycmap", ["#00008B", "#ADD8E6"])
+    # cmap = plt.get_cmap("coolwarm")
+    norm = mcolors.Normalize(vmin=z_min, vmax=z_max)
+    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+
+    for i, pose in enumerate(camera_poses):
+        camera_positions = pose[:3, 3]
+        color = "blue" if i == highlight_index else "blue"
+        size = 100 if i == highlight_index else 25
+        color = sm.to_rgba(camera_positions[2])  # 根据camera_positions[2]的值映射颜色
+        ax.scatter(
+            camera_positions[0],
+            camera_positions[1],
+            camera_positions[2],
+            c=color,
+            marker="o",
+            s=size,
+        )
+
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Z")
+    # ax.set_title("Camera trajectory")
+    ax.view_init(90+30, -90)
+
+    plt.ylim(0,0.2)
+    fig.canvas.draw()
+    width, height = fig.canvas.get_width_height()
+    
+    img = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8').reshape(height, width, 3)
+    new_width = int(width * 0.6)
+    start_x = (width - new_width) // 2 + new_width // 5
+    end_x = start_x + new_width
+    img = img[:, start_x:end_x, :]
+    
+    
+    plt.close()
+
+    return img
+
+

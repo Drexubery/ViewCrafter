@@ -130,7 +130,7 @@ conda create -n viewcrafter python=3.9.16
 conda activate viewcrafter
 pip install -r requirements.txt
 
-# Install PyTorch3D.
+# Install PyTorch3D
 wget https://anaconda.org/pytorch3d/pytorch3d/0.7.5/download/linux-64/pytorch3d-0.7.5-py39_cu117_pyt1131.tar.bz2
 conda install pytorch3d-0.7.5-py39_cu117_pyt1131.tar.bz2
 rm -r pytorch3d-0.7.5-py39_cu117_pyt1131.tar.bz2

@@ -28,8 +28,9 @@ def get_parser():
     parser.add_argument('--d_theta', nargs='+', type=int, default=10.)
     parser.add_argument('--d_phi', nargs='+', type=int, default=30.)
     parser.add_argument('--d_r', nargs='+', type=float, default=.8)
-    parser.add_argument('--elevation',  type=float, default=15.)
+    parser.add_argument('--elevation',  type=float, default=5.) # garden is 10
     parser.add_argument('--mode',  type=str, default='single_view_specify')
+    parser.add_argument('--traj_txt',  type=str, default='')
 
     ## diffusion
     parser.add_argument("--ckpt_path", type=str, default=None, help="checkpoint path")
