@@ -146,11 +146,10 @@ wget https://download.europe.naverlabs.com/ComputerVision/DUSt3R/DUSt3R_ViTLarge
 ### 1. Command line
 
 Download pretrained model (ViewCrafter_25 for example) and put the `model.ckpt` in `checkpoints/model.ckpt`. \
-Please refer to the [configuration document](docs/config_help.md) to set up camera trajectory and inference parameters.
+Please refer to the [configuration document](docs/config_help.md) and [render document](docs/render_help.md) to set up inference parameters and camera trajectory.
 ```bash
   sh run.sh
 ```
-
 
 ### 2. Local Gradio demo
 
