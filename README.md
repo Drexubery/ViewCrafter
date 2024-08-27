@@ -102,7 +102,7 @@ ViewCrafter can generate high-fidelity novel views from <strong>a single or spar
 </table>
 
 ## 📝 Changelog
-- __[2024.08.28]__: Release code for zero-shot novel view synthesis and model weights.
+- __[2024.08.28]__: Release pretrained models and code for single-view novel view synthesis.
 - __[2024.08.28]__: Launch the project page and update the arXiv preprint.
 <br>
 
@@ -126,6 +126,7 @@ cd ViewCrafter
 ### 2. Installation
 
 ```bash
+# Create conda environment
 conda create -n viewcrafter python=3.9.16
 conda activate viewcrafter
 pip install -r requirements.txt
@@ -134,5 +135,27 @@ pip install -r requirements.txt
 wget https://anaconda.org/pytorch3d/pytorch3d/0.7.5/download/linux-64/pytorch3d-0.7.5-py39_cu117_pyt1131.tar.bz2
 conda install pytorch3d-0.7.5-py39_cu117_pyt1131.tar.bz2
 rm -r pytorch3d-0.7.5-py39_cu117_pyt1131.tar.bz2
+
+# Download DUSt3R
+mkdir -p checkpoints/
+wget https://download.europe.naverlabs.com/ComputerVision/DUSt3R/DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth -P checkpoints/
+
+```
+
+## 💫 Inference
+### 1. Command line
+
+Download pretrained model (ViewCrafter_25 for example) and put the `model.ckpt` in `checkpoints/model.ckpt`. \
+Please refer to the [configuration document](docs/config_help.md) to set up camera trajectory and inference parameters.
+```bash
+  sh run.sh
+```
+
+
+### 2. Local Gradio demo
+
+Download the pretrained model and put it in the corresponding directory according to the previous guidelines.
+```bash
+  python gradio_app.py 
 ```
 
