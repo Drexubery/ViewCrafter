@@ -145,15 +145,15 @@ wget https://download.europe.naverlabs.com/ComputerVision/DUSt3R/DUSt3R_ViTLarge
 ## 💫 Inference
 ### 1. Command line
 
-Download pretrained model (ViewCrafter_25 for example) and put the `model.ckpt` in `checkpoints/model.ckpt`. \
-Please refer to the [configuration document](docs/config_help.md) and [render document](docs/render_help.md) to set up inference parameters and camera trajectory.
+(1) Download pretrained model (ViewCrafter_25 for example) and put the `model.ckpt` in `checkpoints/model.ckpt`. \
+(2) Run [inference.py](./inference.py) using the following script. Please refer to the [configuration document](docs/config_help.md) and [render document](docs/render_help.md) to set up inference parameters and camera trajectory. 
 ```bash
   sh run.sh
 ```
 
 ### 2. Local Gradio demo
 
-Download the pretrained model and put it in the corresponding directory according to the previous guidelines.
+Download the pretrained model and put it in the corresponding directory according to the previous guideline, then run:
 ```bash
   python gradio_app.py 
 ```

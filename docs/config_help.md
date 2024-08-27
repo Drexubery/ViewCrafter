@@ -1,4 +1,4 @@
-## Important confiuration options for `inference.py`:
+## Important configuration options for [inference.py](./inference.py):
 
 ### 1. General configs
 | Configuration | default |   Explanation  | 
