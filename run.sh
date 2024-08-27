@@ -1,17 +1,16 @@
 python inference.py \
 --image_dir /apdcephfs_cq10/share_1290939/karmyu/PVDiffusion/test_bench/bea.png \
---out_dir ./output/0826 \
+--out_dir ./output \
 --traj_txt test_bench/trajs/left.txt \
+--mode 'single_view_txt' \
 --center_scale 1. \
+--elevation=5 \
+--seed 123 \
 --bg_trd .3 \
 --dpt_trd 1. \
---mode 'single_view_txt' \
 --d_theta 0  \
 --d_phi 30 \
 --d_r 0   \
---elevation=5 \
---exp_name 'bea' \
---seed 123 \
 --ckpt_path /apdcephfs_cq10/share_1290939/vg_share/vip3d_share/final_ckpt/1024_25frames.ckpt \
 --config configs/inference_pvd_1024.yaml \
 --unconditional_guidance_scale 7.5 \
@@ -19,8 +18,8 @@ python inference.py \
 --ddim_eta 1.0 \
 --text_input \
 --video_length 25 \
---frame_stride 10 \
 --prompt 'Rotating view of a scene.' \
 --device 'cuda:0' \
 --timestep_spacing 'uniform_trailing' --guidance_rescale 0.7 --perframe_ae \
---bs 1 --height 576 --width 1024
+--bs 1 --height 576 --width 1024 \
+--model_path /apdcephfs_cq10/share_1290939/karmyu/dust3r/checkpoints/DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth
