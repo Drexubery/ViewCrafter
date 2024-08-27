@@ -8,7 +8,7 @@
 | `--device` | 'cuda:0' | The device to use |
 | `--exp_name` | None | Experiment name, use image file name by default |
 ### 2. Point cloud render configs
-#### The definition of world coordinate system and tips for adjusting point cloud render configs are illustrated in [render document](docs/render_help.md).
+#### The definition of world coordinate system and tips for adjusting point cloud render configs are illustrated in [render document](./render_help.md).
 | Configuration | default |   Explanation  | 
 |:------------- |:----- | :------------- |
 | `--mode` | 'single_view_txt' | Currently we support 'single_view_txt' and 'single_view_specify' |
