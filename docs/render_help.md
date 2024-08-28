@@ -13,10 +13,13 @@
 
 ![fig](../assets/doc_world.png)
 
-The image above illustrates the definition of the world coordinate system. 
-- Take a single reference image as an example, you first need to estimate an elevation angle `--elevation` that represents the angle at which the image was taken. A value greater than 0 indicates a top-down view, and it doesn't need to be precise.
-- The origin of the world coordinate system is by default defined at the point cloud corresponding to the center pixel of the reference image. You can adjust the position of the origin by modifying `--center_scale`; a value less than 1 brings the origin closer to the reference camera.
-- We use spherical coordinates to represent the camera pose. The initial camera pose is located at (r, 0, 0). You can specify a target camera pose by setting `--mode` as 'single_view_target'. As shown in the figure above, a positive `--d_phi` moves the camera to the right, a positive `--d_theta` moves the camera down, and a negative `--d_r` moves the camera forward (closer to the origin). The program will interpolate a smooth trajectory between the initial pose and the target pose, then rendering the point cloud along that trajectory. Below shows some examples:
+The image above illustrates the definition of the world coordinate system.
+
+**1.** Take a single reference image as an example, you first need to estimate an elevation angle `--elevation` that represents the angle at which the image was taken. A value greater than 0 indicates a top-down view, and it doesn't need to be precise.
+
+**2.** The origin of the world coordinate system is by default defined at the point cloud corresponding to the center pixel of the reference image. You can adjust the position of the origin by modifying `--center_scale`; a value less than 1 brings the origin closer to the reference camera.
+
+**3.** We use spherical coordinates to represent the camera pose. The initial camera pose is located at (r, 0, 0). You can specify a target camera pose by setting `--mode` as 'single_view_target'. As shown in the figure above, a positive `--d_phi` moves the camera to the right, a positive `--d_theta` moves the camera down, and a negative `--d_r` moves the camera forward (closer to the origin). The program will interpolate a smooth trajectory between the initial pose and the target pose, then rendering the point cloud along that trajectory. Below shows some examples:
 <table class="center">
     <tr style="font-weight: bolder;text-align:center;">
         <td> --center_scale </td>
@@ -112,7 +115,7 @@ The image above illustrates the definition of the world coordinate system.
   </tr>
 </table>
 
-- You can also create a camera trajectory by specifying a series of target camera poses. Set `--mode` as 'single_view_txt' and write the target pose sequence in a txt file (example: [loop1.txt](../assets/loop1.txt)). The first line of the txt file should contain the target d_phi sequence, the second line the target d_theta sequence, and the third line the target d_r sequence. Then, input the txt file path into `--traj_txt`. The program will interpolate a smooth trajectory based on the pose sequences you provide. Below shows some examples:
+**4.** You can also create a camera trajectory by specifying a series of target camera poses. Set `--mode` as 'single_view_txt' and write the target pose sequence in a txt file (example: [loop1.txt](../assets/loop1.txt)). The first line of the txt file should contain the target d_phi sequence, the second line the target d_theta sequence, and the third line the target d_r sequence. Then, input the txt file path into `--traj_txt`. The program will interpolate a smooth trajectory based on the pose sequences you provide. Below shows some examples:
 <table class="center">
     <tr style="font-weight: bolder;text-align:center;">
         <td> Target pose sequence </td>
@@ -161,6 +164,6 @@ The image above illustrates the definition of the world coordinate system.
   </tr>
 </table>
 
-**Tips:** A sequence in which the differences between adjacent values increase in one direction results in a smoother trajectory. Ensure that these differences are not too large; otherwise, they may lead to abrupt camera movements, causing the model to produce artifacts such as content drift.
+- **Tips:** A sequence in which the differences between adjacent values increase in one direction results in a smoother trajectory. Ensure that these differences are not too large; otherwise, they may lead to abrupt camera movements, causing the model to produce artifacts such as content drift.
 
 
