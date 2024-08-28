@@ -11,13 +11,13 @@ def get_parser():
     parser.add_argument('--exp_name',  type=str, default=None, help='Experiment name, use image file name by default')
 
     ## renderer
-    parser.add_argument('--mode',  type=str, default='single_view_txt', help="Currently we support 'single_view_txt' and 'single_view_specify'")
+    parser.add_argument('--mode',  type=str,  default='single_view_txt', help="Currently we support 'single_view_txt' and 'single_view_target'")
     parser.add_argument('--traj_txt',  type=str, help="Required for 'single_view_txt' mode, a txt file that specify camera trajectory")
     parser.add_argument('--elevation',  type=float, default=5., help='The elevation angle of the input image in degree. Estimate a rough value based on your visual judgment' )
     parser.add_argument('--center_scale',  type=float, default=1., help='Scale factor for the spherical radius (r). By default, r is set to the depth value of the center pixel (H//2, W//2) of the reference image')
-    parser.add_argument('--d_theta', nargs='+', type=int, default=10., help="Required for 'single_view_specify' mode, specify target theta angle as theta + d_theta")
-    parser.add_argument('--d_phi', nargs='+', type=int, default=30., help="Required for 'single_view_specify' mode, specify target phi angle as phi + d_phi")
-    parser.add_argument('--d_r', nargs='+', type=float, default=-.2, help="Required for 'single_view_specify' mode, specify target radius as r + r*dr")
+    parser.add_argument('--d_theta', nargs='+', type=int, default=10., help="Required for 'single_view_target' mode, specify target theta angle as theta + d_theta")
+    parser.add_argument('--d_phi', nargs='+', type=int, default=30., help="Required for 'single_view_target' mode, specify target phi angle as phi + d_phi")
+    parser.add_argument('--d_r', nargs='+', type=float, default=-.2, help="Required for 'single_view_target' mode, specify target radius as r + r*dr")
     parser.add_argument('--mask_image', type=bool, default=False, help='Required for mulitpule reference images and iterative mode')
     parser.add_argument('--mask_pc',  type=bool, default=True, help='Required for mulitpule reference images and iterative mode')
     parser.add_argument('--reduce_pc', default=False, help='Required for mulitpule reference images and iterative mode')
