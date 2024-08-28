@@ -4,10 +4,10 @@
 | `--mode` | 'single_view_txt' | Currently we support 'single_view_txt' and 'single_view_target' mode|
 | `--traj_txt` | None | Required for 'single_view_txt' mode, a txt file that specify camera trajectory |
 | `--elevation` | 5. | The elevation angle of the input image in degree. Estimate a rough value based on your visual judgment |
-| `--center_scale` | 1. | Scale factor for the spherical radius (r). By default, r is set to the depth value of the center pixel (H//2, W//2) of the reference image |
-| `--d_theta` | 10. | Required for 'single_view_target' mode, specify target theta angle as (theta + d_theta) |
-| `--d_phi` | 30. | Required for 'single_view_target' mode, specify target phi angle as (phi + d_phi) |
-| `--d_r` | -.2 | Required for 'single_view_target' mode, specify target radius as (r + r*dr) |
+| `--center_scale` | 1. | Range: (0, 2]. Scale factor for the spherical radius (r). By default, r is set to the depth value of the center pixel (H//2, W//2) of the reference image |
+| `--d_theta` | 10. | Range: [-40, 40]. Required for 'single_view_target' mode, specify target theta angle as (theta + d_theta) |
+| `--d_phi` | 30. | Range: [-45, 45]. Required for 'single_view_target' mode, specify target phi angle as (phi + d_phi) |
+| `--d_r` | -.2 | Range: [-0.5, 0.5]. Required for 'single_view_target' mode, specify target radius as (r + r*dr) |
 
 <hr>
 
@@ -27,7 +27,7 @@ The image above illustrates the definition of the world coordinate system.
     </tr>
    <tr>
   <td>
-    .7
+    0.5
   </td>
   <td>
     45.
@@ -39,7 +39,7 @@ The image above illustrates the definition of the world coordinate system.
     0.
   </td>
   <td>
-    0.
+    <img src=../assets/doc_tgt_scale5.gif width="250">
   </td>
   </tr>
    <tr>
@@ -56,7 +56,7 @@ The image above illustrates the definition of the world coordinate system.
     0.
   </td>
   <td>
-    0.
+    <img src=../assets/doc_tgt_phi45.gif width="250">
   </td>
   </tr>
      <tr>
@@ -73,7 +73,7 @@ The image above illustrates the definition of the world coordinate system.
     0.
   </td>
   <td>
-    0.
+     <img src=../assets/doc_tgt_theta30.gif width="250">
   </td>
   </tr>
      <tr>
@@ -87,10 +87,10 @@ The image above illustrates the definition of the world coordinate system.
     0.
   </td>
   <td>
-    -.3
+   -0.5
   </td>
   <td>
-    0.
+    <img src=../assets/doc_tgt_r5.gif width="250">
   </td>
   </tr>
      <tr>
@@ -104,10 +104,10 @@ The image above illustrates the definition of the world coordinate system.
     -30.
   </td>
   <td>
-    -.3
+    -0.5
   </td>
   <td>
-    0.
+     <img src=../assets/doc_tgt_combine.gif width="250">
   </td>
   </tr>
 </table>
