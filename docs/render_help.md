@@ -115,10 +115,10 @@ The image above illustrates the definition of the world coordinate system.
   </tr>
 </table>
 
-**4.** You can also create a camera trajectory by specifying a series of target camera poses. Set `--mode` as 'single_view_txt' and write the target pose sequence in a txt file (example: [loop1.txt](../assets/loop1.txt)). The first line of the txt file should contain the target d_phi sequence, the second line the target d_theta sequence, and the third line the target d_r sequence. Then, input the txt file path into `--traj_txt`. The program will interpolate a smooth trajectory based on the pose sequences you provide. Below shows some examples:
+**4.** You can also create a camera trajectory by specifying a sequence of d_phi, d_theta, d_r values. Set `--mode` as 'single_view_txt' and write the sequences in a txt file (example: [loop1.txt](../assets/loop1.txt)). The first line of the txt file should contain the target d_phi sequence, the second line the target d_theta sequence, and the third line the target d_r sequence, The sequence length should range from 2 to 25. Then, input the txt file path into `--traj_txt`. The program will interpolate a smooth trajectory based on the sequences you provide. Below shows some examples:
 <table class="center">
     <tr style="font-weight: bolder;text-align:center;">
-        <td> Target pose sequence </td>
+        <td> Target sequences </td>
         <td> Trajectory visulization </td>
         <td>Render results</td>
     </tr>
