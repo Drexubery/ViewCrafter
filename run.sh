@@ -1,17 +1,17 @@
 python inference.py \
---image_dir /apdcephfs_cq10/share_1290939/karmyu/PVDiffusion/test_bench/bea.png \
+--image_dir test/images/fruit.png \
 --out_dir ./output \
---traj_txt test_bench/trajs/left.txt \
+--traj_txt test/trajs/loop2.txt \
 --mode 'single_view_txt' \
 --center_scale 1. \
 --elevation=5 \
 --seed 123 \
 --bg_trd .3 \
 --dpt_trd 1. \
---d_theta 0  \
---d_phi 30 \
---d_r 0   \
---ckpt_path /apdcephfs_cq10/share_1290939/vg_share/vip3d_share/final_ckpt/1024_25frames.ckpt \
+--d_theta -30  \
+--d_phi 45 \
+--d_r -.5   \
+--ckpt_path ./checkpoints/1024_25frames.ckpt \
 --config configs/inference_pvd_1024.yaml \
 --unconditional_guidance_scale 7.5 \
 --ddim_steps 50 \
@@ -22,4 +22,4 @@ python inference.py \
 --device 'cuda:0' \
 --timestep_spacing 'uniform_trailing' --guidance_rescale 0.7 --perframe_ae \
 --bs 1 --height 576 --width 1024 \
---model_path /apdcephfs_cq10/share_1290939/karmyu/dust3r/checkpoints/DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth
+--model_path ./checkpoints/DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth
