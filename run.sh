@@ -1,25 +1,18 @@
 python inference.py \
---image_dir test/images/fruit.png \
+--image_dir test/images/boy.png \
 --out_dir ./output \
---traj_txt test/trajs/loop2.txt \
+--traj_txt test/trajs/left.txt \
 --mode 'single_view_txt' \
 --center_scale 1. \
 --elevation=5 \
 --seed 123 \
---bg_trd .3 \
---dpt_trd 1. \
 --d_theta -30  \
 --d_phi 45 \
 --d_r -.5   \
---ckpt_path ./checkpoints/1024_25frames.ckpt \
+--ckpt_path ./checkpoints/model.ckpt \
 --config configs/inference_pvd_1024.yaml \
---unconditional_guidance_scale 7.5 \
 --ddim_steps 50 \
---ddim_eta 1.0 \
---text_input \
 --video_length 25 \
---prompt 'Rotating view of a scene.' \
 --device 'cuda:0' \
---timestep_spacing 'uniform_trailing' --guidance_rescale 0.7 --perframe_ae \
---bs 1 --height 576 --width 1024 \
+--height 576 --width 1024 \
 --model_path ./checkpoints/DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth
