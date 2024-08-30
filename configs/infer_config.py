@@ -5,7 +5,7 @@ def get_parser():
     parser = argparse.ArgumentParser()
 
     ## general
-    parser.add_argument('--image_dir', type=str, required=True, help='Image file path')
+    parser.add_argument('--image_dir', type=str, default='./test/images/fruit.png', help='Image file path')
     parser.add_argument('--out_dir', type=str, default='./output', help='Output directory')
     parser.add_argument('--device', type=str, default='cuda:0', help='The device to use')
     parser.add_argument('--exp_name',  type=str, default=None, help='Experiment name, use image file name by default')
@@ -22,11 +22,11 @@ def get_parser():
     parser.add_argument('--mask_pc',  type=bool, default=True, help='Required for mulitpule reference images and iterative mode')
     parser.add_argument('--reduce_pc', default=False, help='Required for mulitpule reference images and iterative mode')
     parser.add_argument('--bg_trd',  type=float, default=0., help='Required for mulitpule reference images and iterative mode, set to 0. is no mask')
-    parser.add_argument('--dpt_trd',  type=float, default=0., help='Required for mulitpule reference images and iterative mode, limit the max depth by * dpt_trd')
+    parser.add_argument('--dpt_trd',  type=float, default=1., help='Required for mulitpule reference images and iterative mode, limit the max depth by * dpt_trd')
 
 
     ## diffusion
-    parser.add_argument("--ckpt_path", type=str, default='./checkpoints/ViewCrafter_25.ckpt', help="checkpoint path")
+    parser.add_argument("--ckpt_path", type=str, default='/apdcephfs_cq10/share_1290939/vg_share/vip3d_share/final_ckpt/1024_25frames.ckpt', help="checkpoint path")
     parser.add_argument("--config", type=str, default='./configs/inference_pvd_1024.yaml', help="config (yaml) path")
     parser.add_argument("--ddim_steps", type=int, default=50, help="steps of ddim if positive, otherwise use DDPM, reduce to 10 to speed up inference")
     parser.add_argument("--ddim_eta", type=float, default=1.0, help="eta for ddim sampling (0.0 yields deterministic sampling)")
@@ -37,14 +37,14 @@ def get_parser():
     parser.add_argument("--unconditional_guidance_scale", type=float, default=7.5, help="prompt classifier-free guidance")
     parser.add_argument("--seed", type=int, default=123, help="seed for seed_everything")
     parser.add_argument("--video_length", type=int, default=25, help="inference video length, change to 16 if you use 16 frame model")
-    parser.add_argument("--negative_prompt", action='store_true', default=False, help="unused")
-    parser.add_argument("--text_input", action='store_true', default=False, help="unused")
+    parser.add_argument("--negative_prompt", default=False, help="unused")
+    parser.add_argument("--text_input", default=True, help="unused")
     parser.add_argument("--prompt", type=str, default='Rotating view of a scene', help="Fixed")
     parser.add_argument("--multiple_cond_cfg", action='store_true', default=False, help="use multi-condition cfg or not")
     parser.add_argument("--cfg_img", type=float, default=None, help="guidance scale for image conditioning")
-    parser.add_argument("--timestep_spacing", type=str, default="uniform", help="The way the timesteps should be scaled. Refer to Table 2 of the [Common Diffusion Noise Schedules and Sample Steps are Flawed](https://huggingface.co/papers/2305.08891) for more information.")
-    parser.add_argument("--guidance_rescale", type=float, default=0.0, help="guidance rescale in [Common Diffusion Noise Schedules and Sample Steps are Flawed](https://huggingface.co/papers/2305.08891)")
-    parser.add_argument("--perframe_ae", action='store_true', default=False, help="if we use per-frame AE decoding, set it to True to save GPU memory, especially for the model of 576x1024")
+    parser.add_argument("--timestep_spacing", type=str, default="uniform_trailing", help="The way the timesteps should be scaled. Refer to Table 2 of the [Common Diffusion Noise Schedules and Sample Steps are Flawed](https://huggingface.co/papers/2305.08891) for more information.")
+    parser.add_argument("--guidance_rescale", type=float, default=0.7, help="guidance rescale in [Common Diffusion Noise Schedules and Sample Steps are Flawed](https://huggingface.co/papers/2305.08891)")
+    parser.add_argument("--perframe_ae", default=True, help="if we use per-frame AE decoding, set it to True to save GPU memory, especially for the model of 576x1024")
     parser.add_argument("--n_samples", type=int, default=1, help="num of samples per prompt")
 
     ## dust3r
