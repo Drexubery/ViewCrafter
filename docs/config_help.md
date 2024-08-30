@@ -3,7 +3,7 @@
 ### 1. General configs
 | Configuration | default |   Explanation  | 
 |:------------- |:----- | :------------- |
-| `--image_dir` | Required | Image file path |
+| `--image_dir` | './test/images/fruit.png' | Image file path |
 | `--out_dir` | './output' | Output directory |
 | `--device` | 'cuda:0' | The device to use |
 | `--exp_name` | None | Experiment name, use image file name by default |
@@ -37,7 +37,7 @@
 | `--prompt` | 'Rotating view of a scene' | Fixed |
 | `--multiple_cond_cfg` | False | Use multi-condition cfg or not |
 | `--cfg_img` | None | Guidance scale for image conditioning |
-| `--timestep_spacing` | "uniform" | The way the timesteps should be scaled. Refer to Table 2 of the [Common Diffusion Noise Schedules and Sample Steps are Flawed](https://huggingface.co/papers/2305.08891) for more information. |
-| `--guidance_rescale` | 0.0 | Guidance rescale in [Common Diffusion Noise Schedules and Sample Steps are Flawed](https://huggingface.co/papers/2305.08891) |
-| `--perframe_ae` | False | If we use per-frame AE decoding, set it to True to save GPU memory, especially for the model of 576x1024 |
+| `--timestep_spacing` | "uniform_trailing" | The way the timesteps should be scaled. Refer to Table 2 of the [Common Diffusion Noise Schedules and Sample Steps are Flawed](https://huggingface.co/papers/2305.08891) for more information. |
+| `--guidance_rescale` | 0.7 | Guidance rescale in [Common Diffusion Noise Schedules and Sample Steps are Flawed](https://huggingface.co/papers/2305.08891) |
+| `--perframe_ae` | True | If we use per-frame AE decoding, set it to True to save GPU memory, especially for the model of 576x1024 |
 | `--n_samples` | 1 | Num of samples per prompt |

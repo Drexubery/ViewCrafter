@@ -21,11 +21,5 @@ if __name__=="__main__":
     elif opts.mode == 'single_view_txt':
         pvd.nvs_single_view()
 
-    elif opts.mode == 'single_view_ref_iterative':
-        all_results = pvd.nvs_single_view_ref_iterative()
-
-    elif opts.mode == 'single_view_1drc_iterative':
-        all_results = pvd.nvs_single_view_1drc_iterative()
-
-    elif opts.mode == 'single_view_nbv':
-        all_results = pvd.nvs_single_view_nbv()
+    else:
+        raise KeyError(f"Invalid Mode: {opts.mode}")

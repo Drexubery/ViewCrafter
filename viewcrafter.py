@@ -27,15 +27,15 @@ from pathlib import Path
 from torchvision.utils import save_image
 
 class ViewCrafter:
-    def __init__(self, opts):
-        
+    def __init__(self, opts, gradio = False):
         self.opts = opts
         self.device = opts.device
         self.setup_dust3r()
-        # self.setup_diffusion()
+        self.setup_diffusion()
         # initialize ref images, pcd
-        self.images, self.img_ori = self.load_initial_images(image_dir=self.opts.image_dir)
-        self.run_dust3r(input_images=self.images)
+        if not gradio:
+            self.images, self.img_ori = self.load_initial_images(image_dir=self.opts.image_dir)
+            self.run_dust3r(input_images=self.images)
         
     def run_dust3r(self, input_images,clean_pc = False):
         pairs = make_pairs(input_images, scene_graph='complete', prefilter=None, symmetrize=True)
@@ -94,7 +94,7 @@ class ViewCrafter:
 
         return torch.clamp(batch_samples[0][0].permute(1,2,3,0), -1., 1.) 
 
-    def nvs_single_view(self):
+    def nvs_single_view(self, gradio=False):
         # 最后一个view为 0 pose
         c2ws = self.scene.get_im_poses().detach()[1:] 
         principal_points = self.scene.get_principal_points().detach()[1:] #cx cy
@@ -131,11 +131,14 @@ class ViewCrafter:
         elif self.opts.mode == 'single_view_target':
             camera_traj,num_views = generate_traj_specified(c2ws, H, W, focals, principal_points, self.opts.d_theta[0], self.opts.d_phi[0], self.opts.d_r[0],self.opts.video_length, self.device)
         elif self.opts.mode == 'single_view_txt':
-            with open(self.opts.traj_txt, 'r') as file:
-                lines = file.readlines()
-                phi = [float(i) for i in lines[0].split()]
-                theta = [float(i) for i in lines[1].split()]
-                r = [float(i) for i in lines[2].split()]
+            if not gradio:
+                with open(self.opts.traj_txt, 'r') as file:
+                    lines = file.readlines()
+                    phi = [float(i) for i in lines[0].split()]
+                    theta = [float(i) for i in lines[1].split()]
+                    r = [float(i) for i in lines[2].split()]
+            else: 
+                phi, theta, r = self.gradio_traj
             camera_traj,num_views = generate_traj_txt(c2ws, H, W, focals, principal_points, phi, theta, r,self.opts.video_length, self.device,viz_traj=True, save_dir = self.opts.save_dir)
         else:
             raise KeyError(f"Invalid Mode: {self.opts.mode}")
@@ -319,7 +322,7 @@ class ViewCrafter:
     
     def load_initial_images(self, image_dir):
         ## load images
-        ## dict_keys(['img', 'true_shape', 'idx', 'instance', 'img_ori']),准成张量形式
+        ## dict_keys(['img', 'true_shape', 'idx', 'instance', 'img_ori']),张量形式
         images = load_images([image_dir], size=512,force_1024 = True)
         img_ori = (images[0]['img_ori'].squeeze(0).permute(1,2,0)+1.)/2. # [576,1024,3] [0,1]
 
@@ -337,3 +340,32 @@ class ViewCrafter:
             images[1]['idx'] = 1
 
         return images, img_ori
+
+    def run_gradio(self,i2v_input_image, i2v_elevation, i2v_d_phi, i2v_d_theta, i2v_d_r, i2v_center_scale, i2v_steps, i2v_seed):
+        self.opts.elevation = float(i2v_elevation)
+        self.opts.center_scale = float(i2v_center_scale)
+        self.opts.ddim_steps = i2v_steps
+        self.gradio_traj = [float(i) for i in i2v_d_phi.split()],[float(i) for i in i2v_d_theta.split()],[float(i) for i in i2v_d_r.split()]
+        seed_everything(i2v_seed)
+        transform = transforms.Compose([
+            transforms.Resize(576),
+            transforms.CenterCrop((576,1024)),
+            ])
+        torch.cuda.empty_cache()
+        img_tensor = torch.from_numpy(i2v_input_image).permute(2, 0, 1).unsqueeze(0).float().to(self.device)
+        img_tensor = (img_tensor / 255. - 0.5) * 2
+        image_tensor_resized = transform(img_tensor) #1,3,h,w
+        images = get_input_dict(image_tensor_resized,idx = 0,dtype = torch.float32)
+        images = [images[0], copy.deepcopy(images[0])]
+        images[1]['idx'] = 1
+        self.images = images
+        self.img_ori = image_tensor_resized
+        # self.images, self.img_ori = self.load_initial_images(image_dir=i2v_input_image)
+        self.run_dust3r(input_images=self.images)
+        self.nvs_single_view(gradio=True)
+
+        traj_dir = os.path.join(self.opts.save_dir, "viz_traj.mp4")
+        render_dir = os.path.join(self.opts.save_dir, "render0.mp4")
+        gen_dir = os.path.join(self.opts.save_dir, "diffusion0.mp4")
+        
+        return traj_dir, render_dir, gen_dir
