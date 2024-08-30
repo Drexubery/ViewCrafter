@@ -26,7 +26,7 @@ def get_parser():
 
 
     ## diffusion
-    parser.add_argument("--ckpt_path", type=str, default='/apdcephfs_cq10/share_1290939/vg_share/vip3d_share/final_ckpt/1024_25frames.ckpt', help="checkpoint path")
+    parser.add_argument("--ckpt_path", type=str, default='.checkpoints/model.ckpt', help="checkpoint path")
     parser.add_argument("--config", type=str, default='./configs/inference_pvd_1024.yaml', help="config (yaml) path")
     parser.add_argument("--ddim_steps", type=int, default=50, help="steps of ddim if positive, otherwise use DDPM, reduce to 10 to speed up inference")
     parser.add_argument("--ddim_eta", type=float, default=1.0, help="eta for ddim sampling (0.0 yields deterministic sampling)")
@@ -48,7 +48,7 @@ def get_parser():
     parser.add_argument("--n_samples", type=int, default=1, help="num of samples per prompt")
 
     ## dust3r
-    parser.add_argument('--model_path', type=str, default='/apdcephfs_cq10/share_1290939/karmyu/dust3r/checkpoints/DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth', help='The path of the model')
+    parser.add_argument('--model_path', type=str, default='./checkpoints/DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth', help='The path of the model')
     parser.add_argument('--batch_size', default=1)
     parser.add_argument('--schedule', type=str, default='linear')
     parser.add_argument('--niter', default=300)
