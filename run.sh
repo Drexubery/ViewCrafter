@@ -1,7 +1,7 @@
 python inference.py \
 --image_dir test/images/boy.png \
 --out_dir ./output \
---traj_txt test/trajs/left.txt \
+--traj_txt test/trajs/loop2.txt \
 --mode 'single_view_txt' \
 --center_scale 1. \
 --elevation=5 \
