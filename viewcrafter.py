@@ -341,7 +341,7 @@ class ViewCrafter:
 
         return images, img_ori
 
-    def run_gradio(self,i2v_input_image, i2v_elevation, i2v_d_phi, i2v_d_theta, i2v_d_r, i2v_center_scale, i2v_steps, i2v_seed):
+    def run_gradio(self,i2v_input_image, i2v_elevation, i2v_center_scale, i2v_d_phi, i2v_d_theta, i2v_d_r, i2v_steps, i2v_seed):
         self.opts.elevation = float(i2v_elevation)
         self.opts.center_scale = float(i2v_center_scale)
         self.opts.ddim_steps = i2v_steps
@@ -356,16 +356,18 @@ class ViewCrafter:
         img_tensor = (img_tensor / 255. - 0.5) * 2
         image_tensor_resized = transform(img_tensor) #1,3,h,w
         images = get_input_dict(image_tensor_resized,idx = 0,dtype = torch.float32)
-        images = [images[0], copy.deepcopy(images[0])]
+        images = [images, copy.deepcopy(images)]
         images[1]['idx'] = 1
         self.images = images
-        self.img_ori = image_tensor_resized
+        self.img_ori = (image_tensor_resized.squeeze(0).permute(1,2,0) + 1.)/2.
+
+        # self.images: torch.Size([1, 3, 288, 512]), [-1,1]
+        # self.img_ori:  torch.Size([576, 1024, 3]), [0,1]
         # self.images, self.img_ori = self.load_initial_images(image_dir=i2v_input_image)
         self.run_dust3r(input_images=self.images)
         self.nvs_single_view(gradio=True)
 
         traj_dir = os.path.join(self.opts.save_dir, "viz_traj.mp4")
-        render_dir = os.path.join(self.opts.save_dir, "render0.mp4")
         gen_dir = os.path.join(self.opts.save_dir, "diffusion0.mp4")
         
-        return traj_dir, render_dir, gen_dir
+        return traj_dir, gen_dir

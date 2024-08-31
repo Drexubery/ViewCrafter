@@ -27,6 +27,6 @@ tqdm==4.65.0
 transformers==4.28.1
 trimesh==4.4.3
 xformers
-gradio
+gradio==3.37.0
 omegaconf==2.3.0
 triton
