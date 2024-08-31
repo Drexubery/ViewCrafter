@@ -101,9 +101,12 @@ ViewCrafter can generate high-fidelity novel views from <strong>a single or spar
   </tr>
 </table>
 
-## 📝 Changelog
-- __[2024.08.28]__: Release pretrained models and code for single-view novel view synthesis.
-- __[2024.08.28]__: Launch the project page and update the arXiv preprint.
+## 🗓️ TODO
+- [x] [2024-09-01] Launch the project page and update the arXiv preprint.
+- [x] [2024-09-01] Release pretrained models and the code for single-view novel view synthesis.
+- [ ] Release the code for sparse-view novel view synthesis.
+- [ ] Release the code for iterative novel view synthesis.
+- [ ] Release the code for 3D-GS reconstruction.
 <br>
 
 ## 🧰 Models
