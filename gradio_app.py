@@ -32,7 +32,7 @@ def viewcrafter_demo(opts):
                     </h2> \
                      <a style='font-size:18px;color: #FF5DB0' href='https://github.com/Drexubery/ViewCrafter/blob/main/docs/render_help.md'> [Guideline] </a>\
                      <a style='font-size:18px;color: #000000' href=''> [ArXiv] </a>\
-                     <a style='font-size:18px;color: #000000' href='https://doubiiu.github.io/projects/viewcrafter/'> [Project Page] </a>\
+                     <a style='font-size:18px;color: #000000' href='https://drexubery.github.io/ViewCrafter/'> [Project Page] </a>\
                      <a style='font-size:18px;color: #000000' href='https://github.com/Drexubery/ViewCrafter'> [Github] </a> </div>") 
                 
         #######image2video######
