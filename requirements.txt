@@ -27,5 +27,6 @@ transformers==4.28.1
 trimesh==4.4.3
 xformers
 gradio==3.37.0
+gradio_client==0.7.1
 omegaconf==2.3.0
 triton

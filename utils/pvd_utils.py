@@ -505,15 +505,15 @@ def visualizer_frame(camera_poses, highlight_index):
     # ax.set_title("Camera trajectory")
     ax.view_init(90+30, -90)
 
-    plt.ylim(0,0.2)
+    plt.ylim(-0.1,0.2)
     fig.canvas.draw()
     width, height = fig.canvas.get_width_height()
     
     img = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8').reshape(height, width, 3)
-    new_width = int(width * 0.6)
-    start_x = (width - new_width) // 2 + new_width // 5
-    end_x = start_x + new_width
-    img = img[:, start_x:end_x, :]
+    # new_width = int(width * 0.6)
+    # start_x = (width - new_width) // 2 + new_width // 5
+    # end_x = start_x + new_width
+    # img = img[:, start_x:end_x, :]
     
     
     plt.close()
