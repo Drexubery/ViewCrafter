@@ -89,14 +89,12 @@ model:
     cond_stage_config:
       target: lvdm.modules.encoders.condition.FrozenOpenCLIPEmbedder
       params:
-        version: /apdcephfs_cq10/share_1290939/vg_share/vip3d_share/OpenCLIP-ViT-H-14-laion2B-s32B-b79K/blobs/9a78ef8e8c73fd0df621682e7a8e8eb36c6916cb3c16b291a082ecd52ab79cc4
         freeze: true
         layer: "penultimate"
 
     img_cond_stage_config:
       target: lvdm.modules.encoders.condition.FrozenOpenCLIPImageEmbedderV2
       params:
-        version: /apdcephfs_cq10/share_1290939/vg_share/vip3d_share/OpenCLIP-ViT-H-14-laion2B-s32B-b79K/blobs/9a78ef8e8c73fd0df621682e7a8e8eb36c6916cb3c16b291a082ecd52ab79cc4
         freeze: true
     
     image_proj_stage_config:
