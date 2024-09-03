@@ -1,5 +1,5 @@
 model:
-  pretrained_checkpoint: /apdcephfs_cq10/share_1290939/vg_share/vip3d_share/DC_1024/model.ckpt
+  pretrained_checkpoint: ./
   base_learning_rate: 1.0e-05
   scale_lr: False
   target: lvdm.models.ddpm3d.VIPLatentDiffusion
