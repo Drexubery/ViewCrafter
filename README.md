@@ -161,6 +161,17 @@ Download the pretrained model and put it in the corresponding directory accordin
   python gradio_app.py 
 ```
 
+## 😉 Citation
+Please consider citing our paper if our code and dataset annotations are useful:
+```bib
+  @article{yu2024viewcrafter,
+    title={ViewCrafter: Taming Video Diffusion Models for High-fidelity Novel View Synthesis},
+    author={Yu, Wangbo and Xing, Jinbo and Yuan, Li and Hu, Wenbo and Li, Xiaoyu and Huang, Zhipeng and Gao, Xiangjun and Wong, Tien-Tsin and Shan, Ying and Tian, Yonghong},
+    journal={arXiv preprint arXiv:2409.02048},
+    year={2024}
+  }
+```
+
 <a name="disc"></a>
 ## 📢 Disclaimer
 ⚠️This is an open-source research exploration rather than a commercial product, so it may not meet all your expectations. Due to the variability of the video diffusion model, you may encounter failure cases. Try using different seeds and adjusting the render configs if the results are not desirable.
