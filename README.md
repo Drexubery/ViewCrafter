@@ -60,7 +60,7 @@ ViewCrafter can generate high-fidelity novel views from <strong>a single or spar
   </tr>
 </table>
 
-### Zero-shot novel view synthesis (2 views)
+### Zero-shot novel view synthesis (two views)
 <table class="center">
     <tr style="font-weight: bolder;text-align:center;">
         <td>Reference image 1</td>
