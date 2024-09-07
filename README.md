@@ -162,7 +162,7 @@ Download the pretrained model and put it in the corresponding directory accordin
 ```
 
 ## 😉 Citation
-Please consider citing our paper if our code and dataset annotations are useful:
+Please consider citing our paper if our code is useful:
 ```bib
   @article{yu2024viewcrafter,
     title={ViewCrafter: Taming Video Diffusion Models for High-fidelity Novel View Synthesis},
