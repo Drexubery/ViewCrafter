@@ -19,7 +19,7 @@ The image above illustrates the definition of the world coordinate system.
 
 **2.** The origin of the world coordinate system is by default defined at the point cloud corresponding to the center pixel of the reference image. You can adjust the position of the origin by modifying `--center_scale`; a value less than 1 brings the origin closer to the reference camera.
 
-**3.** We use spherical coordinates to represent the camera pose. The initial camera is located at (r, 0, 0). You can specify a target camera pose by setting `--mode` as 'single_view_target'. As shown in the figure above, a positive `--d_phi` moves the camera to the right, a positive `--d_theta` moves the camera down, and a negative `--d_r` moves the camera forward (closer to the origin). The program will interpolate a smooth trajectory between the initial pose and the target pose, then rendering the point cloud along that trajectory. Below shows some examples:
+**3.** We use spherical coordinates to represent the camera pose. The initial camera is located at (r, 0, 0). You can specify a target camera pose by setting `--mode` as 'single_view_target'. As shown in the figure above, a positive `--d_phi` moves the camera to the right, a negative `--d_theta` moves the camera up, and a negative `--d_r` moves the camera forward (closer to the origin). The program will interpolate a smooth trajectory between the initial pose and the target pose, then rendering the point cloud along that trajectory. Below shows some examples:
 <table class="center">
     <tr style="font-weight: bolder;text-align:center;">
         <td> --center_scale </td>
