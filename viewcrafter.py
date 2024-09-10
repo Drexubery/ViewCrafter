@@ -347,14 +347,10 @@ class ViewCrafter:
         self.opts.ddim_steps = i2v_steps
         self.gradio_traj = [float(i) for i in i2v_d_phi.split()],[float(i) for i in i2v_d_theta.split()],[float(i) for i in i2v_d_r.split()]
         seed_everything(i2v_seed)
-        transform = transforms.Compose([
-            transforms.Resize(576),
-            transforms.CenterCrop((576,1024)),
-            ])
         torch.cuda.empty_cache()
         img_tensor = torch.from_numpy(i2v_input_image).permute(2, 0, 1).unsqueeze(0).float().to(self.device)
         img_tensor = (img_tensor / 255. - 0.5) * 2
-        image_tensor_resized = transform(img_tensor) #1,3,h,w
+        image_tensor_resized = center_crop_image(img_tensor) #1,3,h,w
         images = get_input_dict(image_tensor_resized,idx = 0,dtype = torch.float32)
         images = [images, copy.deepcopy(images)]
         images[1]['idx'] = 1

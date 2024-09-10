@@ -12,6 +12,26 @@ from PIL.ImageOps import exif_transpose
 import torchvision.transforms as tvf
 os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "1"
 import cv2  # noqa
+from PIL import Image, ImageOps
+
+
+def center_crop_pil_image(input_image, target_width=1024, target_height=576):
+    w, h = input_image.size
+    h_ratio = h / target_height
+    w_ratio = w / target_width
+
+    if h_ratio > w_ratio:
+        h = int(h / w_ratio)
+        if h < target_height:
+            h = target_height
+        input_image = input_image.resize((target_width, h), Image.ANTIALIAS)
+    else:
+        w = int(w / h_ratio)
+        if w < target_width:
+            w = target_width
+        input_image = input_image.resize((w, target_height), Image.ANTIALIAS)
+
+    return ImageOps.fit(input_image, (target_width, target_height), Image.BICUBIC)
 
 try:
     from pillow_heif import register_heif_opener  # noqa
@@ -90,7 +110,7 @@ def load_images(folder_or_list, size, square_ok=False,force_1024 = False):
             continue
         img = exif_transpose(PIL.Image.open(os.path.join(root, path))).convert('RGB')
         if force_1024:
-            img = img.resize((1024, 576))
+            img = center_crop_pil_image(img)
         img_ori = img
         W1, H1 = img.size
         if size == 224:

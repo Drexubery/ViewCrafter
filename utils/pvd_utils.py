@@ -32,6 +32,7 @@ sys.path.append('./extern/dust3r')
 from dust3r.utils.device import to_numpy
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+from torchvision.transforms import CenterCrop, Compose, Resize
 
 def save_video(data,images_path,folder=None):
     if isinstance(data, np.ndarray):
@@ -519,5 +520,34 @@ def visualizer_frame(camera_poses, highlight_index):
     plt.close()
 
     return img
+
+
+def center_crop_image(input_image):
+
+    height = 576
+    width = 1024
+    _,_,h,w = input_image.shape
+    h_ratio = h / height
+    w_ratio = w / width
+
+    if h_ratio > w_ratio:
+        h = int(h / w_ratio)
+        if h < height:
+            h = height
+        input_image = Resize((h, width))(input_image)
+        
+    else:
+        w = int(w / h_ratio)
+        if w < width:
+            w = width
+        input_image = Resize((height, w))(input_image)
+
+    transformer = Compose([
+        # Resize(width),
+        CenterCrop((height, width)),
+    ])
+
+    input_image = transformer(input_image)
+    return input_image
 
 
