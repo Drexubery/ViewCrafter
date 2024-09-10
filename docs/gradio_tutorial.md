@@ -1,4 +1,4 @@
-# Tutorail of the Huggingface demo
+# Tutorial of the Huggingface demo
 
 ![fig](../assets/doc_world.png)
 
