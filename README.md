@@ -117,9 +117,10 @@ ViewCrafter can generate high-fidelity novel views from <strong>a single or spar
 |:---------|:---------|:--------|:--------|:--------|
 |ViewCrafter_25|576x1024|25| 23.5GB & 120s (`perframe_ae=True`)|[Hugging Face](https://huggingface.co/Drexubery/ViewCrafter_25/blob/main/model.ckpt)|
 |ViewCrafter_16|576x1024|16| 18.3GB & 75s (`perframe_ae=True`)|[Hugging Face](https://huggingface.co/Drexubery/ViewCrafter_16/blob/main/model.ckpt)|
+|ViewCrafter_25_512|320x512|25| 13.8GB & 50s (`perframe_ae=True`)|[Hugging Face](https://huggingface.co/Drexubery/ViewCrafter_25_512/blob/main/model.ckpt)|
 
 
-Currently, we provide two versions of the model: a base model that generates 16 frames at a time and an enhanced model that generates 25 frames at a time. The inference time can be reduced by using fewer DDIM steps.
+Currently, we provide three versions of the model: a base model that generates 16 frames at a time, an enhanced model that generates 25 frames at a time (used by default), and a low-resolution model that produces 25 frames of 320x512 video. The inference time can be reduced by using fewer DDIM steps.
 
 ## ⚙️ Setup
 
