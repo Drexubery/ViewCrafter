@@ -129,7 +129,7 @@ class ViewCrafter:
             # 重置elevation
             self.opts.elevation -= theta_nbv
         elif self.opts.mode == 'single_view_target':
-            camera_traj,num_views = generate_traj_specified(c2ws, H, W, focals, principal_points, self.opts.d_theta[0], self.opts.d_phi[0], self.opts.d_r[0],self.opts.video_length, self.device)
+            camera_traj,num_views = generate_traj_specified(c2ws, H, W, focals, principal_points, self.opts.d_theta[0], self.opts.d_phi[0], self.opts.d_r[0],self.opts.d_x[0]*depth_avg/focals.item(),self.opts.d_y[0]*depth_avg/focals.item(),self.opts.video_length, self.device)
         elif self.opts.mode == 'single_view_txt':
             if not gradio:
                 with open(self.opts.traj_txt, 'r') as file:
