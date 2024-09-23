@@ -8,7 +8,9 @@ python inference.py \
 --seed 123 \
 --d_theta -30  \
 --d_phi 45 \
---d_r -.5   \
+--d_r -.2   \
+--d_x 50   \
+--d_y 25   \
 --ckpt_path ./checkpoints/model.ckpt \
 --config configs/inference_pvd_1024.yaml \
 --ddim_steps 50 \
