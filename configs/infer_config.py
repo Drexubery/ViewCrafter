@@ -18,6 +18,8 @@ def get_parser():
     parser.add_argument('--d_theta', nargs='+', type=int, default=10., help="Range: [-40, 40]. Required for 'single_view_target' mode, specify target theta angle as theta + d_theta")
     parser.add_argument('--d_phi', nargs='+', type=int, default=30., help="Range: [-45, 45]. Required for 'single_view_target' mode, specify target phi angle as phi + d_phi")
     parser.add_argument('--d_r', nargs='+', type=float, default=-.2, help="Range: [-.5, .5]. Required for 'single_view_target' mode, specify target radius as r + r*dr")
+    parser.add_argument('--d_x', nargs='+', type=float, default=0., help="Range: [-200, 200]. Required for 'single_view_target' mode, '+' denotes pan right")
+    parser.add_argument('--d_y', nargs='+', type=float, default=0., help="Range: [-100, .100]. Required for 'single_view_target' mode, '+' denotes pan up")
     parser.add_argument('--mask_image', type=bool, default=False, help='Required for mulitpule reference images and iterative mode')
     parser.add_argument('--mask_pc',  type=bool, default=True, help='Required for mulitpule reference images and iterative mode')
     parser.add_argument('--reduce_pc', default=False, help='Required for mulitpule reference images and iterative mode')
