@@ -86,11 +86,15 @@ def rotate_theta(c2ws_input, theta, phi, r, device):
 
     return c2ws
 
-def sphere2pose(c2ws_input, theta, phi, r, device):
+def sphere2pose(c2ws_input, theta, phi, r, device,x=None,y=None):
     c2ws = copy.deepcopy(c2ws_input)
 
     #先沿着世界坐标系z轴方向平移再旋转
     c2ws[:,2,3] += r
+    if x is not None:
+        c2ws[:,1,3] += y
+    if y is not None:
+        c2ws[:,0,3] += x
 
     theta = torch.deg2rad(torch.tensor(theta)).to(device)
     sin_value_x = torch.sin(theta)
@@ -146,7 +150,7 @@ def generate_candidate_poses(c2ws_anchor,H,W,fs,c,theta, phi,num_candidates,devi
     cameras = PerspectiveCameras(focal_length=fs, principal_point=c, in_ndc=False, image_size=image_size, R=R_new, T=T_new, device=device)
     return cameras,thetas,phis
 
-def generate_traj_specified(c2ws_anchor,H,W,fs,c,theta, phi,d_r,frame,device):
+def generate_traj_specified(c2ws_anchor,H,W,fs,c,theta, phi,d_r,d_x,d_y,frame,device):
     # Initialize a camera.
     """
     The camera coordinate sysmte in COLMAP is right-down-forward
@@ -156,9 +160,11 @@ def generate_traj_specified(c2ws_anchor,H,W,fs,c,theta, phi,d_r,frame,device):
     thetas = np.linspace(0,theta,frame)
     phis = np.linspace(0,phi,frame)
     rs = np.linspace(0,d_r*c2ws_anchor[0,2,3].cpu(),frame)
+    xs = np.linspace(0,d_x.cpu(),frame)
+    ys = np.linspace(0,d_y.cpu(),frame)
     c2ws_list = []
-    for th, ph, r in zip(thetas,phis,rs):
-        c2w_new = sphere2pose(c2ws_anchor, np.float32(th), np.float32(ph), np.float32(r), device)
+    for th, ph, r, x, y in zip(thetas,phis,rs, xs, ys):
+        c2w_new = sphere2pose(c2ws_anchor, np.float32(th), np.float32(ph), np.float32(r), device, np.float32(x),np.float32(y))
         c2ws_list.append(c2w_new)
     c2ws = torch.cat(c2ws_list,dim=0)
     num_views = c2ws.shape[0]
