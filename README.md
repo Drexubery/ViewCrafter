@@ -103,24 +103,22 @@ ViewCrafter can generate high-fidelity novel views from <strong>a single or spar
   </tr>
 </table>
 
-## 🗓️ TODO
-- [x] [2024-09-01] Launch the project page and update the arXiv preprint.
-- [x] [2024-09-01] Release pretrained models and the code for single-view novel view synthesis.
-- [ ] Release the code for sparse-view novel view synthesis.
-- [ ] Release the code for iterative novel view synthesis.
-- [ ] Release the code for 3D-GS reconstruction.
+## 📝 Changelog
+- __[2024-10-15]__: 🔥🔥 Release the code for sparse-view novel view synthesis.
+- __[2024-09-01]__: Launch the project page and update the arXiv preprint.
+- __[2024-09-01]__: Release pretrained models and the code for single-view novel view synthesis.
 <br>
 
 ## 🧰 Models
 
-|Model|Resolution|Frames|GPU Mem. & Inference Time (A100, ddim 50steps)|Checkpoint|
-|:---------|:---------|:--------|:--------|:--------|
-|ViewCrafter_25|576x1024|25| 23.5GB & 120s (`perframe_ae=True`)|[Hugging Face](https://huggingface.co/Drexubery/ViewCrafter_25/blob/main/model.ckpt)|
-|ViewCrafter_16|576x1024|16| 18.3GB & 75s (`perframe_ae=True`)|[Hugging Face](https://huggingface.co/Drexubery/ViewCrafter_16/blob/main/model.ckpt)|
-|ViewCrafter_25_512|320x512|25| 13.8GB & 50s (`perframe_ae=True`)|[Hugging Face](https://huggingface.co/Drexubery/ViewCrafter_25_512/blob/main/model.ckpt)|
+|Model|Resolution|Frames|GPU Mem. & Inference Time (A100, ddim 50steps)|Checkpoint|Description|
+|:---------|:---------|:--------|:--------|:--------|:--------|
+|ViewCrafter_25|576x1024|25| 23.5GB & 120s (`perframe_ae=True`)|[Hugging Face](https://huggingface.co/Drexubery/ViewCrafter_25/blob/main/model.ckpt)|Used for single view NVS, can also adapt to sparse view NVS|
+|ViewCrafter_25_sparse|576x1024|25| 23.5GB & 120s (`perframe_ae=True`)|[Hugging Face](https://huggingface.co/Drexubery/ViewCrafter_25_sparse/blob/main/model_sparse.ckpt)|Used for sparse view NVS|
+|ViewCrafter_16|576x1024|16| 18.3GB & 75s (`perframe_ae=True`)|[Hugging Face](https://huggingface.co/Drexubery/ViewCrafter_16/blob/main/model.ckpt)|16 frames model|
+|ViewCrafter_25_512|320x512|25| 13.8GB & 50s (`perframe_ae=True`)|[Hugging Face](https://huggingface.co/Drexubery/ViewCrafter_25_512/blob/main/model.ckpt)|512 resolution model|
 
-
-Currently, we provide three versions of the model: a base model that generates 16 frames at a time, an enhanced model that generates 25 frames at a time (used by default), and a low-resolution model that produces 25 frames of 320x512 video. The inference time can be reduced by using fewer DDIM steps.
+<!-- Currently, we provide four versions of the model: a base model that generates 16 frames at a time, an enhanced model that generates 25 frames at a time (used by default), and a low-resolution model that produces 25 frames of 320x512 video. The inference time can be reduced by using fewer DDIM steps. -->
 
 ## ⚙️ Setup
 
@@ -146,13 +144,19 @@ wget https://download.europe.naverlabs.com/ComputerVision/DUSt3R/DUSt3R_ViTLarge
 
 ```
 
-## 💫 Inference
+## 💫 Inference 
 ### 1. Command line
-
-(1) Download pretrained model (ViewCrafter_25 for example) and put the `model.ckpt` in `checkpoints/model.ckpt`. \
+### Single view novel view synthesis
+(1) Download pretrained [ViewCrafter_25](https://huggingface.co/Drexubery/ViewCrafter_25/blob/main/model.ckpt) and put the `model.ckpt` in `checkpoints/model.ckpt`. \
 (2) Run [inference.py](./inference.py) using the following script. Please refer to the [configuration document](docs/config_help.md) and [render document](docs/render_help.md) to set up inference parameters and camera trajectory. 
 ```bash
   sh run.sh
+```
+### Sparse view novel view synthesis
+(1) Download pretrained [ViewCrafter_25_sparse](https://huggingface.co/Drexubery/ViewCrafter_25_sparse/blob/main/model_sparse.ckpt) and put the `model_sparse.ckpt` in `checkpoints/model_sparse.ckpt`. ([ViewCrafter_25_sparse](https://huggingface.co/Drexubery/ViewCrafter_25_sparse/blob/main/model_sparse.ckpt) is specifically trained for the sparse view NVS task and performs better than [ViewCrafter_25](https://huggingface.co/Drexubery/ViewCrafter_25/blob/main/model.ckpt) on this task) \
+(2) Run [inference.py](./inference.py) using the following script. Adjust the `--bg_trd` parameter to clean the point cloud; higher values will produce a cleaner point cloud but may create holes in the background.
+```bash
+  sh run_sparse.sh
 ```
 
 ### 2. Local Gradio demo

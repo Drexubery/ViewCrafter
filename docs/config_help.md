@@ -18,6 +18,7 @@
 | `--d_theta` | 10. | Required for 'single_view_target' mode, specify target theta angle as (theta + d_theta) |
 | `--d_phi` | 30. | Required for 'single_view_target' mode, specify target phi angle as (phi + d_phi) |
 | `--d_r` | -.2 | Required for 'single_view_target' mode, specify target radius as (r + r*dr) |
+| `--bg_trd` | 0.2 | Range from [0,1). Required for 'sparse_view_interp' mode, higher values will produce a cleaner point cloud but may create holes in the background |
 ### 3. Diffusion configs
 | Configuration | default |   Explanation  | 
 |:------------- |:----- | :------------- |

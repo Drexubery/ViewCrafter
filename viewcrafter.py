@@ -12,6 +12,7 @@ import torchvision
 import os
 import copy
 import cv2  
+import glob
 from PIL import Image
 import pytorch3d
 from pytorch3d.structures import Pointclouds
@@ -34,8 +35,14 @@ class ViewCrafter:
         self.setup_diffusion()
         # initialize ref images, pcd
         if not gradio:
-            self.images, self.img_ori = self.load_initial_images(image_dir=self.opts.image_dir)
-            self.run_dust3r(input_images=self.images)
+            if os.path.isfile(self.opts.image_dir):
+                self.images, self.img_ori = self.load_initial_images(image_dir=self.opts.image_dir)
+                self.run_dust3r(input_images=self.images)
+            elif os.path.isdir(self.opts.image_dir):
+                self.images, self.img_ori = self.load_initial_dir(image_dir=self.opts.image_dir)
+                self.run_dust3r(input_images=self.images, clean_pc = True)    
+            else:
+                print(f"{self.opts.image_dir} doesn't exist")           
         
     def run_dust3r(self, input_images,clean_pc = False):
         pairs = make_pairs(input_images, scene_graph='complete', prefilter=None, symmetrize=True)
@@ -51,7 +58,7 @@ class ViewCrafter:
         else:
             self.scene = scene
 
-    def render_pcd(self,pts3d,imgs,masks,views,renderer,device):
+    def render_pcd(self,pts3d,imgs,masks,views,renderer,device,nbv=False):
         
         imgs = to_numpy(imgs)
         pts3d = to_numpy(pts3d)
@@ -64,18 +71,22 @@ class ViewCrafter:
             pts = torch.from_numpy(np.concatenate([p[m] for p, m in zip(pts3d, masks)])).to(device)
             col = torch.from_numpy(np.concatenate([p[m] for p, m in zip(imgs, masks)])).to(device)
         
-        color_mask = torch.ones(col.shape).to(device)
-
-        point_cloud_mask = Pointclouds(points=[pts],features=[color_mask]).extend(views)
         point_cloud = Pointclouds(points=[pts], features=[col]).extend(views)
         images = renderer(point_cloud)
-        view_masks = renderer(point_cloud_mask)
+
+        if nbv:
+            color_mask = torch.ones(col.shape).to(device)
+            point_cloud_mask = Pointclouds(points=[pts],features=[color_mask]).extend(views)
+            view_masks = renderer(point_cloud_mask)
+        else: 
+            view_masks = None
+
         return images, view_masks
     
-    def run_render(self, pcd, imgs,masks, H, W, camera_traj,num_views):
+    def run_render(self, pcd, imgs,masks, H, W, camera_traj,num_views,nbv=False):
         render_setup = setup_renderer(camera_traj, image_size=(H,W))
         renderer = render_setup['renderer']
-        render_results, viewmask = self.render_pcd(pcd, imgs, masks, num_views,renderer,self.device)
+        render_results, viewmask = self.render_pcd(pcd, imgs, masks, num_views,renderer,self.device,nbv=False)
         return render_results, viewmask
 
     
@@ -95,7 +106,7 @@ class ViewCrafter:
         return torch.clamp(batch_samples[0][0].permute(1,2,3,0), -1., 1.) 
 
     def nvs_single_view(self, gradio=False):
-        # 最后一个view为 0 pose
+
         c2ws = self.scene.get_im_poses().detach()[1:] 
         principal_points = self.scene.get_principal_points().detach()[1:] #cx cy
         focals = self.scene.get_focals().detach()[1:] 
@@ -103,8 +114,8 @@ class ViewCrafter:
         H, W = int(shape[0][0]), int(shape[0][1])
         pcd = [i.detach() for i in self.scene.get_pts3d(clip_thred=self.opts.dpt_trd)] # a list of points of size whc
         depth = [i.detach() for i in self.scene.get_depthmaps()]
-        depth_avg = depth[-1][H//2,W//2] #以图像中心处的depth(z)为球心旋转
-        radius = depth_avg*self.opts.center_scale #缩放调整
+        depth_avg = depth[-1][H//2,W//2] 
+        radius = depth_avg*self.opts.center_scale 
 
         ## change coordinate
         c2ws,pcd =  world_point_to_obj(poses=c2ws, points=torch.stack(pcd), k=-1, r=radius, elevation=self.opts.elevation, device=self.device)
@@ -200,7 +211,7 @@ class ViewCrafter:
             ## FIXME hard coded candidate view数量, 以left为例,第一次迭代从[左,左上]中选取, 从第二次开始可以从[左,左上,左下]中选取
             num_candidates = 3
             candidate_poses,thetas,phis = generate_candidate_poses(c2ws[-1:], H, W, focals[-1:], principal_points[-1:], self.opts.d_theta[0], self.opts.d_phi[0], num_candidates, self.device)
-            _, viewmask = self.run_render(pcd, imgs,masks, H, W, candidate_poses,num_candidates)
+            _, viewmask = self.run_render(pcd, imgs,masks, H, W, candidate_poses,num_candidates,nbv=True)
             nbv_id = torch.argmin(viewmask.sum(dim=[1,2,3])).item()
             save_image(viewmask.permute(0,3,1,2), os.path.join(self.opts.save_dir,f"candidate_mask{iter}_nbv{nbv_id}.png"), normalize=True, value_range=(0, 1))
             theta_nbv = thetas[nbv_id]
@@ -222,6 +233,51 @@ class ViewCrafter:
         # torch.Size([25, 576, 1024, 3])
         return diffusion_results
     
+    def nvs_sparse_view_interp(self):
+
+        c2ws = self.scene.get_im_poses().detach()
+        principal_points = self.scene.get_principal_points().detach()
+        focals = self.scene.get_focals().detach()
+        shape = self.images[0]['true_shape']
+        H, W = int(shape[0][0]), int(shape[0][1])
+        pcd = [i.detach() for i in self.scene.get_pts3d(clip_thred=self.opts.dpt_trd)] # a list of points of size whc
+        depth = [i.detach() for i in self.scene.get_depthmaps()]
+
+        if len(self.images) == 2:
+            masks = None
+            mask_pc = False
+        else:
+            ## masks for cleaner point cloud
+            self.scene.min_conf_thr = float(self.scene.conf_trf(torch.tensor(self.opts.min_conf_thr)))
+            masks = self.scene.get_masks()
+            depth = self.scene.get_depthmaps()
+            bgs_mask = [dpt > self.opts.bg_trd*(torch.max(dpt[40:-40,:])+torch.min(dpt[40:-40,:])) for dpt in depth]
+            masks_new = [m+mb for m, mb in zip(masks,bgs_mask)] 
+            masks = to_numpy(masks_new)
+            mask_pc = True
+
+        imgs = np.array(self.scene.imgs)
+
+        camera_traj,num_views = generate_traj_interp(c2ws, H, W, focals, principal_points, self.opts.video_length, self.device)
+        render_results, viewmask = self.run_render(pcd, imgs,masks, H, W, camera_traj,num_views)
+        render_results = F.interpolate(render_results.permute(0,3,1,2), size=(576, 1024), mode='bilinear', align_corners=False).permute(0,2,3,1)
+        
+        for i in range(len(self.img_ori)):
+            render_results[i*(self.opts.video_length - 1)] = self.img_ori[i]
+        save_video(render_results, os.path.join(self.opts.save_dir, f'render.mp4'))
+        save_pointcloud_with_normals(imgs, pcd, msk=masks, save_path=os.path.join(self.opts.save_dir, f'pcd.ply') , mask_pc=mask_pc, reduce_pc=False)
+
+        diffusion_results = []
+        print(f'Generating {len(self.img_ori)-1} clips\n')
+        for i in range(len(self.img_ori)-1 ):
+            print(f'Generating clip {i} ...\n')
+            diffusion_results.append(self.run_diffusion(render_results[i*(self.opts.video_length - 1):self.opts.video_length+i*(self.opts.video_length - 1)]))
+        print(f'Finish!\n')
+        diffusion_results = torch.cat(diffusion_results)
+        save_video((diffusion_results + 1.0) / 2.0, os.path.join(self.opts.save_dir, f'diffusion.mp4'))
+        # torch.Size([25, 576, 1024, 3])
+        return diffusion_results
+
     def nvs_single_view_ref_iterative(self):
 
         all_results = []
@@ -326,20 +382,26 @@ class ViewCrafter:
         images = load_images([image_dir], size=512,force_1024 = True)
         img_ori = (images[0]['img_ori'].squeeze(0).permute(1,2,0)+1.)/2. # [576,1024,3] [0,1]
 
-        # img_ori = Image.open(image_dir).convert('RGB')
-
-        # transform = transforms.Compose([
-        #     transforms.Resize((576, 1024)),  
-        #     transforms.ToTensor(), 
-        #     transforms.Normalize((0., 0., 0.), (1., 1., 1.))  # 归一化到[-1,1]，如果要归一化到[0,1]，请使用transforms.Normalize((0., 0., 0.), (1., 1., 1.))
-        # ])
-
-        # img_ori = transform(img_ori).permute(1,2,0).to(self.device)
         if len(images) == 1:
             images = [images[0], copy.deepcopy(images[0])]
             images[1]['idx'] = 1
 
         return images, img_ori
+
+    def load_initial_dir(self, image_dir):
+
+        image_files = glob.glob(os.path.join(image_dir, "*"))
+
+        if len(image_files) < 2:
+            raise ValueError("Input views should not less than 2.")
+        image_files = sorted(image_files, key=lambda x: int(x.split('/')[-1].split('.')[0]))
+        images = load_images(image_files, size=512,force_1024 = True)
+
+        img_gts = []
+        for i in range(len(image_files)):
+            img_gts.append((images[i]['img_ori'].squeeze(0).permute(1,2,0)+1.)/2.) 
+
+        return images, img_gts
 
     def run_gradio(self,i2v_input_image, i2v_elevation, i2v_center_scale, i2v_d_phi, i2v_d_theta, i2v_d_r, i2v_steps, i2v_seed):
         self.opts.elevation = float(i2v_elevation)
@@ -350,6 +412,7 @@ class ViewCrafter:
         torch.cuda.empty_cache()
         img_tensor = torch.from_numpy(i2v_input_image).permute(2, 0, 1).unsqueeze(0).float().to(self.device)
         img_tensor = (img_tensor / 255. - 0.5) * 2
+
         image_tensor_resized = center_crop_image(img_tensor) #1,3,h,w
         images = get_input_dict(image_tensor_resized,idx = 0,dtype = torch.float32)
         images = [images, copy.deepcopy(images)]

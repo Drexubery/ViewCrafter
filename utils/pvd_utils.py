@@ -4,6 +4,7 @@ import numpy as np
 import os
 import math
 import torchvision
+import scipy
 from tqdm import tqdm
 import cv2  # Assuming OpenCV is used for image saving
 from PIL import Image
@@ -149,6 +150,103 @@ def generate_candidate_poses(c2ws_anchor,H,W,fs,c,theta, phi,num_candidates,devi
     image_size = ((H, W),)  # (h, w)
     cameras = PerspectiveCameras(focal_length=fs, principal_point=c, in_ndc=False, image_size=image_size, R=R_new, T=T_new, device=device)
     return cameras,thetas,phis
+
+def interpolate_poses_spline(poses, n_interp, spline_degree=5,
+                               smoothness=.03, rot_weight=.1):
+    """Creates a smooth spline path between input keyframe camera poses.
+
+  Spline is calculated with poses in format (position, lookat-point, up-point).
+
+  Args:
+    poses: (n, 3, 4) array of input pose keyframes.
+    n_interp: returned path will have n_interp * (n - 1) total poses.
+    spline_degree: polynomial degree of B-spline.
+    smoothness: parameter for spline smoothing, 0 forces exact interpolation.
+    rot_weight: relative weighting of rotation/translation in spline solve.
+
+  Returns:
+    Array of new camera poses with shape (n_interp * (n - 1), 3, 4).
+  """
+
+    def poses_to_points(poses, dist):
+        """Converts from pose matrices to (position, lookat, up) format."""
+        pos = poses[:, :3, -1]
+        lookat = poses[:, :3, -1] - dist * poses[:, :3, 2]
+        up = poses[:, :3, -1] + dist * poses[:, :3, 1]
+        return np.stack([pos, lookat, up], 1)
+
+    def points_to_poses(points):
+        """Converts from (position, lookat, up) format to pose matrices."""
+        return np.array([viewmatrix(p - l, u - p, p) for p, l, u in points])
+
+    def interp(points, n, k, s):
+        """Runs multidimensional B-spline interpolation on the input points."""
+        sh = points.shape
+        pts = np.reshape(points, (sh[0], -1))
+        k = min(k, sh[0] - 1)
+        tck, _ = scipy.interpolate.splprep(pts.T, k=k, s=s)
+        u = np.linspace(0, 1, n, endpoint=False)
+        new_points = np.array(scipy.interpolate.splev(u, tck))
+        new_points = np.reshape(new_points.T, (n, sh[1], sh[2]))
+        return new_points
+    
+    def viewmatrix(lookdir, up, position):
+        """Construct lookat view matrix."""
+        vec2 = normalize(lookdir)
+        vec0 = normalize(np.cross(up, vec2))
+        vec1 = normalize(np.cross(vec2, vec0))
+        m = np.stack([vec0, vec1, vec2, position], axis=1)
+        return m
+
+    def normalize(x):
+        """Normalization helper function."""
+        return x / np.linalg.norm(x)
+    
+    points = poses_to_points(poses, dist=rot_weight)
+    new_points = interp(points,
+                        n_interp * (points.shape[0] - 1),
+                        k=spline_degree,
+                        s=smoothness)
+    new_poses = points_to_poses(new_points) 
+    poses_tensor = torch.from_numpy(new_poses)
+    extra_row = torch.tensor(np.repeat([[0, 0, 0, 1]], n_interp, axis=0), dtype=torch.float32).unsqueeze(1)
+    poses_final = torch.cat([poses_tensor, extra_row], dim=1)
+
+    return poses_final
+
+def interp_traj(c2ws: torch.Tensor, n_inserts: int = 25, device='cuda') -> torch.Tensor:
+    
+    n_poses = c2ws.shape[0] 
+    interpolated_poses = []
+
+    for i in range(n_poses-1):
+        start_pose = c2ws[i]
+        end_pose = c2ws[(i + 1) % n_poses]
+        interpolated_path = interpolate_poses_spline(torch.stack([start_pose, end_pose])[:, :3, :].cpu().numpy(), n_inserts).to(device)
+        interpolated_path = interpolated_path[:-1]
+        interpolated_poses.append(interpolated_path)
+
+    interpolated_poses.append(c2ws[-1:])
+    full_path = torch.cat(interpolated_poses, dim=0)
+
+    return full_path
+
+def generate_traj_interp(c2ws,H,W,fs,c,ns,device):
+
+    c2ws = interp_traj(c2ws,n_inserts= ns,device=device)
+    num_views = c2ws.shape[0] 
+    R, T = c2ws[:,:3, :3], c2ws[:,:3, 3:]
+    R = torch.stack([-R[:,:, 0], -R[:,:, 1], R[:,:, 2]], 2) # from RDF to LUF for Rotation
+    new_c2w = torch.cat([R, T], 2)
+    w2c = torch.linalg.inv(torch.cat((new_c2w, torch.Tensor([[[0,0,0,1]]]).to(device).repeat(new_c2w.shape[0],1,1)),1))
+    R_new, T_new = w2c[:,:3, :3].permute(0,2,1), w2c[:,:3, 3] # convert R to row-major matrix
+    image_size = ((H, W),)  # (h, w)
+
+    fs = interpolate_sequence(fs,ns-2,device=device)
+    c = interpolate_sequence(c,ns-2,device=device)
+    cameras = PerspectiveCameras(focal_length=fs, principal_point=c, in_ndc=False, image_size=image_size, R=R_new, T=T_new, device=device)
+    
+    return cameras, num_views
 
 def generate_traj_specified(c2ws_anchor,H,W,fs,c,theta, phi,d_r,d_x,d_y,frame,device):
     # Initialize a camera.
@@ -313,6 +411,8 @@ def interpolate_poses(start_pose: torch.Tensor, end_pose: torch.Tensor, focus_po
 
     path = torch.stack(inserted_c2ws)
     return path
+
+
 
 def inv(mat):
     """ Invert a torch or numpy matrix
@@ -555,5 +655,3 @@ def center_crop_image(input_image):
 
     input_image = transformer(input_image)
     return input_image
-
-

@@ -21,5 +21,8 @@ if __name__=="__main__":
     elif opts.mode == 'single_view_txt':
         pvd.nvs_single_view()
 
+    elif opts.mode == 'sparse_view_interp':
+        pvd.nvs_sparse_view_interp()
+
     else:
         raise KeyError(f"Invalid Mode: {opts.mode}")
