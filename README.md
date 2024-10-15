@@ -81,7 +81,7 @@ ViewCrafter can generate high-fidelity novel views from <strong>a single or spar
   </tr>
   <tr>
   <td>
-    <img src=assets/barn_1.png width="250">
+    <img src=assets/barn_0.png width="250">
   </td>
   <td>
     <img src=assets/barn_2.png width="250">
@@ -104,7 +104,7 @@ ViewCrafter can generate high-fidelity novel views from <strong>a single or spar
 </table>
 
 ## 📝 Changelog
-- __[2024-10-15]__: 🔥🔥 Release the code for sparse-view novel view synthesis.
+- __[2024-10-15]__: 🔥🔥 Release the code for sparse view novel view synthesis.
 - __[2024-09-01]__: Launch the project page and update the arXiv preprint.
 - __[2024-09-01]__: Release pretrained models and the code for single-view novel view synthesis.
 <br>
