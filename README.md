@@ -143,6 +143,8 @@ mkdir -p checkpoints/
 wget https://download.europe.naverlabs.com/ComputerVision/DUSt3R/DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth -P checkpoints/
 
 ```
+> [!NOTE]
+> If you use a high PyTorch version (like torch 2.4), it may cause CUDA OOM error. Please refer to [these issues](https://github.com/Drexubery/ViewCrafter/issues/23#issuecomment-2396131121) for solutions.
 
 ## 💫 Inference 
 ### 1. Command line
