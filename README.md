@@ -18,7 +18,7 @@ _**[Wangbo Yu*](https://scholar.google.com/citations?user=UOE8-qsAAAAJ&hl=zh-CN)
 - __[2024-09-01]__: Launch the project page and update the arXiv preprint.
 - __[2024-09-01]__: Release pretrained models and the code for single-view novel view synthesis.
 
-🤗 If you find **ViewCrafter** useful, **please help ⭐ this repo**, which is important to Open-Source projects. Thanks!
+🤗 If you find ViewCrafter useful, **please help ⭐ this repo**, which is important to Open-Source projects. Thanks!
 
 ViewCrafter can generate high-fidelity novel views from <strong>a single or sparse reference image</strong>, while also supporting highly precise pose control. Below shows some examples:
 
