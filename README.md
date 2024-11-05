@@ -136,7 +136,7 @@ pip install -r requirements.txt
 # Install PyTorch3D
 conda install https://anaconda.org/pytorch3d/pytorch3d/0.7.5/download/linux-64/pytorch3d-0.7.5-py39_cu117_pyt1131.tar.bz2
 
-# Download DUSt3R
+# Download pretrained DUSt3R model
 mkdir -p checkpoints/
 wget https://download.europe.naverlabs.com/ComputerVision/DUSt3R/DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth -P checkpoints/
 
