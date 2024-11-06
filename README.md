@@ -159,6 +159,13 @@ wget https://download.europe.naverlabs.com/ComputerVision/DUSt3R/DUSt3R_ViTLarge
 ```bash
   sh run_sparse.sh
 ```
+### 2. Local Gradio demo
+
+Download pretrained [ViewCrafter_25](https://huggingface.co/Drexubery/ViewCrafter_25/blob/main/model.ckpt) and put the `model.ckpt` in `checkpoints/model.ckpt`, then run:
+```bash
+  python gradio_app.py 
+```
+
 ## 📈 Evaluation
 
 We provide a demo script to evaluate single-view novel view synthesis:
@@ -166,13 +173,6 @@ We provide a demo script to evaluate single-view novel view synthesis:
   sh run_eval.sh
 ```
 The input is a folder containing frames from your test video. We use the first frame as the reference image and the subsequent frames as target novel views.
-
-### 2. Local Gradio demo
-
-Download pretrained [ViewCrafter_25](https://huggingface.co/Drexubery/ViewCrafter_25/blob/main/model.ckpt) and put the `model.ckpt` in `checkpoints/model.ckpt`, then run:
-```bash
-  python gradio_app.py 
-```
 
 ## 😉 Citation
 Please consider citing our paper if our code is useful:
