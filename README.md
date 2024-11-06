@@ -159,6 +159,13 @@ wget https://download.europe.naverlabs.com/ComputerVision/DUSt3R/DUSt3R_ViTLarge
 ```bash
   sh run_sparse.sh
 ```
+## 💫 Evaluation
+
+We provide a demo script to evaluate single-view novel view synthesis:
+```bash
+  sh run_eval.sh
+```
+The input is a folder containing frames from your test video. We use the first frame as the reference image and the subsequent frames as target novel views.
 
 ### 2. Local Gradio demo
 
