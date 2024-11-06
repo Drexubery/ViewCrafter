@@ -231,6 +231,18 @@ def interp_traj(c2ws: torch.Tensor, n_inserts: int = 25, device='cuda') -> torch
 
     return full_path
 
+def generate_traj(c2ws,H,W,fs,c,device):
+
+    R, T = c2ws[:,:3, :3], c2ws[:,:3, 3:]
+    R = torch.stack([-R[:,:, 0], -R[:,:, 1], R[:,:, 2]], 2) # from RDF to LUF for Rotation
+    new_c2w = torch.cat([R, T], 2)
+    w2c = torch.linalg.inv(torch.cat((new_c2w, torch.Tensor([[[0,0,0,1]]]).to(device).repeat(new_c2w.shape[0],1,1)),1))
+    R_new, T_new = w2c[:,:3, :3].permute(0,2,1), w2c[:,:3, 3] # convert R to row-major matrix
+    image_size = ((H, W),)  # (h, w)
+    cameras = PerspectiveCameras(focal_length=fs, principal_point=c, in_ndc=False, image_size=image_size, R=R_new, T=T_new, device=device)
+    
+    return cameras, c2ws.shape[0]
+
 def generate_traj_interp(c2ws,H,W,fs,c,ns,device):
 
     c2ws = interp_traj(c2ws,n_inserts= ns,device=device)
@@ -655,3 +667,5 @@ def center_crop_image(input_image):
 
     input_image = transformer(input_image)
     return input_image
+
+

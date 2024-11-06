@@ -16,7 +16,8 @@ _**[Wangbo Yu*](https://scholar.google.com/citations?user=UOE8-qsAAAAJ&hl=zh-CN)
 
 ## 🔆 Introduction
 
-- __[2024-10-15]__: 🔥🔥 Release the code for sparse view novel view synthesis.
+- __[2024-10-15]__: Add a simple evaluation script for single-view novel view synthesis.
+- __[2024-10-15]__: 🔥🔥 Release the code for sparse-view novel view synthesis.
 - __[2024-09-01]__: Launch the project page and update the arXiv preprint.
 - __[2024-09-01]__: Release pretrained models and the code for single-view novel view synthesis.
 

@@ -106,7 +106,7 @@ class ViewCrafter:
         return torch.clamp(batch_samples[0][0].permute(1,2,3,0), -1., 1.) 
 
     def nvs_single_view(self, gradio=False):
-
+        # 最后一个view为 0 pose
         c2ws = self.scene.get_im_poses().detach()[1:] 
         principal_points = self.scene.get_principal_points().detach()[1:] #cx cy
         focals = self.scene.get_focals().detach()[1:] 
@@ -114,8 +114,8 @@ class ViewCrafter:
         H, W = int(shape[0][0]), int(shape[0][1])
         pcd = [i.detach() for i in self.scene.get_pts3d(clip_thred=self.opts.dpt_trd)] # a list of points of size whc
         depth = [i.detach() for i in self.scene.get_depthmaps()]
-        depth_avg = depth[-1][H//2,W//2] 
-        radius = depth_avg*self.opts.center_scale 
+        depth_avg = depth[-1][H//2,W//2] #以图像中心处的depth(z)为球心旋转
+        radius = depth_avg*self.opts.center_scale #缩放调整
 
         ## change coordinate
         c2ws,pcd =  world_point_to_obj(poses=c2ws, points=torch.stack(pcd), k=-1, r=radius, elevation=self.opts.elevation, device=self.device)
@@ -275,6 +275,36 @@ class ViewCrafter:
         print(f'Finish!\n')
         diffusion_results = torch.cat(diffusion_results)
         save_video((diffusion_results + 1.0) / 2.0, os.path.join(self.opts.save_dir, f'diffusion.mp4'))
+        # torch.Size([25, 576, 1024, 3])
+        return diffusion_results
+
+    def nvs_single_view_eval(self):
+
+        # get camera trajectory of the input frames
+        c2ws = self.scene.get_im_poses().detach()
+        principal_points = self.scene.get_principal_points().detach()
+        focals = self.scene.get_focals().detach()
+        shape = self.images[0]['true_shape']
+        H, W = int(shape[0][0]), int(shape[0][1])
+        pcd = [i.detach() for i in self.scene.get_pts3d(clip_thred=self.opts.dpt_trd)] # a list of points of size whc
+        c2ws,pcd =  world_point_to_kth(poses=c2ws, points=torch.stack(pcd), k=0, device=self.device)
+        camera_traj,num_views = generate_traj(c2ws, H, W, focals, principal_points, self.device)
+        
+        # estimate pcd again using only one ref image
+        images_ref = [self.images[0], copy.deepcopy(self.images[0])]
+        images_ref[1]['idx'] = 1
+        self.run_dust3r(input_images=images_ref)
+        pcd_ref = self.scene.get_pts3d(clip_thred=self.opts.dpt_trd)[0].detach()
+        img_ref = np.array(self.scene.imgs)[0]
+        masks = None
+
+        render_results, viewmask = self.run_render([pcd_ref], [img_ref],masks, H, W, camera_traj,num_views)
+        render_results = F.interpolate(render_results.permute(0,3,1,2), size=(576, 1024), mode='bilinear', align_corners=False).permute(0,2,3,1)
+        render_results[0] = self.img_ori[0]
+        save_video(render_results, os.path.join(self.opts.save_dir, f'render_ref0.mp4'))
+        diffusion_results = self.run_diffusion(render_results)
+
+        save_video((diffusion_results + 1.0) / 2.0, os.path.join(self.opts.save_dir, f'diffusion_ref0.mp4'))
         # torch.Size([25, 576, 1024, 3])
         return diffusion_results
 
