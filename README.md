@@ -159,7 +159,7 @@ wget https://download.europe.naverlabs.com/ComputerVision/DUSt3R/DUSt3R_ViTLarge
 ```bash
   sh run_sparse.sh
 ```
-## 💫 Evaluation
+## 📈 Evaluation
 
 We provide a demo script to evaluate single-view novel view synthesis:
 ```bash
