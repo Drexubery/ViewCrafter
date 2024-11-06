@@ -172,7 +172,7 @@ We provide a demo script to evaluate single-view novel view synthesis:
 ```bash
   sh run_eval.sh
 ```
-The input is a folder containing frames from your test video. We use the first frame as the reference image and the subsequent frames as target novel views.
+The input should be a folder containing frames from your test video. We use the first frame as the reference image and the subsequent frames as target novel views.
 
 ## 😉 Citation
 Please consider citing our paper if our code is useful:
