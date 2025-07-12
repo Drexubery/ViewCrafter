@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ViewCrafter: Novel View Synthesis</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #3b82f6;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-2xl">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">ViewCrafter: Novel View Synthesis</h1>
+
+        <div class="mb-6">
+            <label for="inputImage" class="block text-gray-700 text-sm font-semibold mb-2">
+                Select Input Image:
+            </label>
+            <input type="file" id="inputImage" accept="image/*" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <div id="imagePreview" class="mt-4 flex justify-center items-center h-48 bg-gray-100 rounded-lg overflow-hidden">
+                <img src="https://placehold.co/200x200/cccccc/333333?text=Input+Image" alt="Input Preview" class="max-h-full max-w-full object-contain" id="previewImage">
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <label for="viewAngle" class="block text-gray-700 text-sm font-semibold mb-2">
+                Desired View Angle (Simulated):
+            </label>
+            <input type="range" id="viewAngle" min="0" max="360" value="180" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+            <div class="text-center text-gray-600 text-sm mt-2">
+                Current Angle: <span id="angleValue">180</span>&deg;
+            </div>
+        </div>
+
+        <button id="generateBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out flex items-center justify-center">
+            <span id="buttonText">Generate Novel View</span>
+            <div id="loadingSpinner" class="loading-spinner ml-3 hidden"></div>
+        </button>
+
+        <div class="mt-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">Generated View:</h2>
+            <div id="outputContainer" class="flex justify-center items-center h-64 bg-gray-100 rounded-lg overflow-hidden border border-gray-300">
+                <img src="https://placehold.co/300x200/eeeeee/333333?text=Generated+View" alt="Generated Output" class="max-h-full max-w-full object-contain" id="outputImage">
+            </div>
+        </div>
+    </div>
+
+    <!-- Link to app.js -->
+    <script src="app.js"></script>
+</body>
+</html>
